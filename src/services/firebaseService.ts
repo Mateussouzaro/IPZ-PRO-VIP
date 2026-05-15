@@ -339,9 +339,12 @@ export async function getGamerCoachingHistory(uid: string): Promise<CoachingRequ
 export const FAMOUS_PLAYERS = [
   {
     id: 'nobru',
-    name: 'Nobru VIP',
-    avatar: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?q=80&w=150&auto=format&fit=crop',
+    name: 'Nobru Fluxo',
+    avatar: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=300&auto=format&fit=crop',
     deviceModel: 'iPhone 15 Pro Max',
+    themeColor: '#a855f7', // Purple
+    passiveName: 'Aura Roxa',
+    passiveDesc: '+25% de estabilização automática da mira ao puxar o analógico.',
     boosterValue: 50,
     sensitivities: {
       arma1Tiro: 185,
@@ -357,8 +360,11 @@ export const FAMOUS_PLAYERS = [
   {
     id: 'cerol',
     name: 'Cerol Fluxo',
-    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150&auto=format&fit=crop',
+    avatar: 'https://images.unsplash.com/photo-1620336655055-088d06e36bf0?q=80&w=300&auto=format&fit=crop',
     deviceModel: 'iPad Pro M4',
+    themeColor: '#f97316', // Orange
+    passiveName: 'Fúria Ígnea',
+    passiveDesc: '+40% de sensibilidade de giro de câmera em combates de curto alcance.',
     boosterValue: 100,
     sensitivities: {
       arma1Tiro: 200,
@@ -374,8 +380,11 @@ export const FAMOUS_PLAYERS = [
   {
     id: 'thurzin',
     name: 'Thurzin LOUD',
-    avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?q=80&w=150&auto=format&fit=crop',
+    avatar: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=300&auto=format&fit=crop',
     deviceModel: 'POCO F5 Pro',
+    themeColor: '#22c55e', // Green LOUD
+    passiveName: 'Puxada Neon',
+    passiveDesc: '-15ms de latência de toque integrada à taxa de atualização do display.',
     boosterValue: 30,
     sensitivities: {
       arma1Tiro: 160,
@@ -391,8 +400,11 @@ export const FAMOUS_PLAYERS = [
   {
     id: 'level_up',
     name: 'Level UP 007',
-    avatar: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=150&auto=format&fit=crop',
+    avatar: 'https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=300&auto=format&fit=crop',
     deviceModel: 'Samsung Galaxy S24 Ultra',
+    themeColor: '#06b6d4', // Cyan
+    passiveName: 'Rastreador Cyber',
+    passiveDesc: '+15% de precisão de pixels virtuais de mira de longa distância.',
     boosterValue: 200,
     sensitivities: {
       arma1Tiro: 195,
@@ -408,8 +420,11 @@ export const FAMOUS_PLAYERS = [
   {
     id: 'bak',
     name: 'Bak King',
-    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=150&auto=format&fit=crop',
+    avatar: 'https://images.unsplash.com/photo-1560942485-b2a11cc13456?q=80&w=300&auto=format&fit=crop',
     deviceModel: 'ROG Phone 8 Pro',
+    themeColor: '#eab308', // Gold
+    passiveName: 'Coroa Imperial',
+    passiveDesc: 'Emulação tática perfeita para emuladores com macro integrado.',
     boosterValue: 100,
     sensitivities: {
       arma1Tiro: 170,
