@@ -1,0 +1,156 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net: default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- REUSABLE GLOBAL HELPERS ---
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- COLLECTION RULES: USERS ---
+    
+    match /users/{userId} {
+      allow get: if isSignedIn() && request.auth.uid == userId;
+      allow list: if isSignedIn() && existing().uid == request.auth.uid;
+      
+      allow create: if isSignedIn() 
+                    && isEmailVerified()
+                    && request.auth.uid == userId 
+                    && isValidUser(incoming())
+                    && incoming().keys().hasAll(['uid', 'email', 'username', 'avatarUrl', 'deviceModel', 'createdAt', 'updatedAt'])
+                    && incoming().keys().size() == 7;
+                    
+      allow update: if isSignedIn() 
+                    && isEmailVerified()
+                    && request.auth.uid == userId 
+                    && isValidUser(incoming())
+                    && incoming().diff(existing()).affectedKeys().hasOnly(['username', 'avatarUrl', 'deviceModel', 'updatedAt']);
+    }
+
+    function isValidUser(data) {
+      return data.uid == request.auth.uid
+        && data.email is string && data.email.size() <= 200
+        && data.username is string && data.username.size() >= 3 && data.username.size() <= 32
+        && data.avatarUrl is string && data.avatarUrl.size() <= 256
+        && data.deviceModel is string && data.deviceModel.size() <= 64
+        && data.createdAt == (resource == null ? request.time : existing().createdAt)
+        && data.updatedAt == request.time;
+    }
+
+    // --- COLLECTION RULES: CONFIGS ---
+    
+    match /configs/{configId} {
+      allow get: if isSignedIn() && existing().ownerId == request.auth.uid;
+      allow list: if isSignedIn() && existing().ownerId == request.auth.uid;
+      
+      allow create: if isSignedIn()
+                    && isEmailVerified()
+                    && isValidId(configId)
+                    && isValidConfig(incoming())
+                    && incoming().ownerId == request.auth.uid
+                    && incoming().createdAt == request.time
+                    && incoming().keys().hasAll(['id', 'name', 'ownerId', 'deviceModel', 'boosterValue', 'sensitivities', 'regedits', 'optimizations', 'createdAt', 'updatedAt'])
+                    && incoming().keys().size() == 10;
+                    
+      allow update: if isSignedIn()
+                    && isEmailVerified()
+                    && existing().ownerId == request.auth.uid
+                    && incoming().ownerId == request.auth.uid
+                    && isValidConfig(incoming())
+                    && incoming().updatedAt == request.time
+                    && incoming().diff(existing()).affectedKeys().hasAny(['name', 'deviceModel', 'boosterValue', 'sensitivities', 'regedits', 'optimizations', 'updatedAt']);
+                    
+      allow delete: if isSignedIn() 
+                    && isEmailVerified()
+                    && existing().ownerId == request.auth.uid;
+    }
+
+    function isValidConfig(data) {
+      return data.id is string && data.id.size() <= 128
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 64
+        && data.ownerId == request.auth.uid
+        && data.deviceModel is string && data.deviceModel.size() <= 64
+        && data.boosterValue is int && (data.boosterValue == 5 || data.boosterValue == 10 || data.boosterValue == 30 || data.boosterValue == 50 || data.boosterValue == 100 || data.boosterValue == 200)
+        && data.sensitivities is map
+        && data.sensitivities.arma1Tiro is int && data.sensitivities.arma1Tiro >= 0 && data.sensitivities.arma1Tiro <= 200
+        && data.sensitivities.metralhadora is int && data.sensitivities.metralhadora >= 0 && data.sensitivities.metralhadora <= 200
+        && data.sensitivities.fuzil is int && data.sensitivities.fuzil >= 0 && data.sensitivities.fuzil <= 200
+        && data.sensitivities.submetralhadora is int && data.sensitivities.submetralhadora >= 0 && data.sensitivities.submetralhadora <= 200
+        && data.sensitivities.espingarda is int && data.sensitivities.espingarda >= 0 && data.sensitivities.espingarda <= 200
+        && data.sensitivities.velocidadeToque is int && data.sensitivities.velocidadeToque >= 0 && data.sensitivities.velocidadeToque <= 200
+        && data.sensitivities.dpi is int && data.sensitivities.dpi >= 0 && data.sensitivities.dpi <= 12 * 100 // 1200 maximum
+        && data.sensitivities.cursorMovel is int && data.sensitivities.cursorMovel >= 0 && data.sensitivities.cursorMovel <= 200
+        && data.regedits is map
+        && data.regedits.tiroSemRecuo is bool
+        && data.regedits.ff4xSensi is bool
+        && data.regedits.ffHeadshot is bool
+        && data.regedits.macroPC is bool
+        && data.regedits.miraPerfeita is bool
+        && data.optimizations is map
+        && data.optimizations.noLag is bool
+        && data.optimizations.batterySave is bool
+        && data.optimizations.clickHud is bool
+        && data.optimizations.fpsSelector is int;
+    }
+
+    // --- COLLECTION RULES: COACHING ---
+    
+    match /coaching/{analysisId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+      
+      allow create: if isSignedIn()
+                    && isEmailVerified()
+                    && isValidId(analysisId)
+                    && isValidCoaching(incoming())
+                    && incoming().userId == request.auth.uid
+                    && incoming().status == 'pending'
+                    && incoming().createdAt == request.time
+                    && incoming().keys().hasAll(['id', 'userId', 'videoName', 'videoSize', 'videoDuration', 'status', 'analysisResult', 'createdAt'])
+                    && incoming().keys().size() == 8;
+                    
+      allow update: if isSignedIn()
+                    && isEmailVerified()
+                    && existing().userId == request.auth.uid
+                    && incoming().userId == request.auth.uid
+                    && isValidCoaching(incoming())
+                    && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'analysisResult']);
+                    
+      allow delete: if isSignedIn()
+                    && isEmailVerified()
+                    && existing().userId == request.auth.uid;
+    }
+
+    function isValidCoaching(data) {
+      return data.id is string && data.id.size() <= 128
+        && data.userId == request.auth.uid
+        && data.videoName is string && data.videoName.size() <= 256
+        && data.videoSize is string && data.videoSize.size() <= 32
+        && data.videoDuration is string && data.videoDuration.size() <= 32
+        && data.status is string && (data.status == 'pending' || data.status == 'completed')
+        && data.analysisResult is string && data.analysisResult.size() <= 8192;
+    }
+  }
+}

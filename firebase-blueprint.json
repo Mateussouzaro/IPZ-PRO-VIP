@@ -1,0 +1,67 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Registered gamer profile containing setting preferences.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Auth user ID" },
+        "email": { "type": "string", "format": "email", "description": "User email address" },
+        "username": { "type": "string", "description": "Gaming nick name" },
+        "avatarUrl": { "type": "string", "description": "Avatar design choice" },
+        "deviceModel": { "type": "string", "description": "Detected or manually changed Android model" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "username", "createdAt", "updatedAt"]
+    },
+    "Config": {
+      "title": "Config",
+      "description": "Custom gamer sensitivity settings, booster multipliers, sliders and regedit toggles.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique config identifier" },
+        "name": { "type": "string", "description": "Name of the config profile (X1, Sensi Padrao, etc.)" },
+        "ownerId": { "type": "string", "description": "User UID who created the config" },
+        "deviceModel": { "type": "string", "description": "Device model string" },
+        "boosterValue": { "type": "integer", "description": "Sensi booster multiplier" },
+        "sensitivities": { "type": "object", "description": "Detailed sensitivity levels for different weaponry" },
+        "regedits": { "type": "object", "description": "State of regedit iOS toggles" },
+        "optimizations": { "type": "object", "description": "State of device optimizations toggles and FPS values" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "ownerId", "deviceModel", "boosterValue", "sensitivities", "regedits", "optimizations", "createdAt", "updatedAt"]
+    },
+    "Coaching": {
+      "title": "Coaching",
+      "description": "Gamer-uploaded partida gameplay video analyses with custom tips generated via Gemini AI.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique coaching ID" },
+        "userId": { "type": "string", "description": "User UID who requested the coaching session" },
+        "videoName": { "type": "string", "description": "Filename of the gameplay clip" },
+        "videoSize": { "type": "string", "description": "Formatted file size up to 1GB" },
+        "videoDuration": { "type": "string", "description": "Video length description" },
+        "status": { "type": "string", "description": "Process status: pending | completed" },
+        "analysisResult": { "type": "string", "description": "Detailed AI tips and advice for high HS rate" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "videoName", "status", "analysisResult", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Collection of gamer user profiles."
+    },
+    "/configs/{configId}": {
+      "schema": "Config",
+      "description": "Collection of sensitivity configurations."
+    },
+    "/coaching/{analysisId}": {
+      "schema": "Coaching",
+      "description": "Collection of coach game analyses and recommendations."
+    }
+  }
+}
