@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Crown, Smartphone, Shield, Zap, Target, Sliders, Gauge, 
   Settings, Heart, Download, Upload, Plus, Search, HelpCircle, 
-  Volume2, VolumeX, LogIn, LogOut, Check, Sparkles, User, AlertCircle, FileCode, CheckCircle, Flame
+  Volume2, VolumeX, LogIn, LogOut, Check, Sparkles, User, AlertCircle, FileCode, CheckCircle, Flame,
+  Layers, ExternalLink, Eye, EyeOff, Cpu, Play
 } from 'lucide-react';
 
 // Import our cohesive, high-performance modular components
@@ -62,6 +63,32 @@ export default function App() {
   // Floating tooltip detail content
   const [activePresetInfo, setActivePresetInfo] = useState<string | null>(null);
 
+  // Floating Overlay & Game Launcher States
+  const [overlayPermissionGranted, setOverlayPermissionGranted] = useState<boolean>(() => {
+    return localStorage.getItem('ipz_overlay_permission') === 'true';
+  });
+  const [showPermissionDialog, setShowPermissionDialog] = useState<boolean>(false);
+  const [overlayActive, setOverlayActive] = useState<boolean>(() => {
+    return localStorage.getItem('ipz_overlay_active') !== 'false'; // default active once permission is granted
+  });
+  const [isLaunchingGame, setIsLaunchingGame] = useState<boolean>(false);
+  const [launchStep, setLaunchStep] = useState<number>(0);
+  const [showExpandedOverlayHUD, setShowExpandedOverlayHUD] = useState<boolean>(false);
+
+  // Background Daemon & Mod/Cheat (Xit) simulation states
+  const [backgroundEngineActive, setBackgroundEngineActive] = useState<boolean>(true);
+  const [xitSettings, setXitSettings] = useState({
+    autoCapa: false,
+    hitboxAmpliado: false,
+    espLine3d: false,
+    bypassAntiBan: true,
+  });
+  const [backgroundLogs, setBackgroundLogs] = useState<string[]>([
+    "[KERNEL] Motor de ajuste tático em segundo plano ativo v2.8",
+    "[CORE] Analisando canais capacitivos de toque táctil no Free Fire...",
+    "[OVERLAY] Desenho e sobreposição de tela prontos para injeção."
+  ]);
+
   // Load local storage custom avatar style preferences on startup
   useEffect(() => {
     const localColor = localStorage.getItem('ipz_avatar_color');
@@ -71,6 +98,62 @@ export default function App() {
     if (localAccent) setAvatarColorAccent(localAccent);
     if (localName) setCustomAvatarName(localName);
   }, []);
+
+  // Loop de processamento em segundo plano (Modo Regedit & Xit ativo)
+  useEffect(() => {
+    if (!backgroundEngineActive) return;
+
+    const interval = setInterval(() => {
+      const activeRegs = Object.entries(regedits)
+        .filter(([_, val]) => val)
+        .map(([key, _]) => {
+          if (key === 'tiroSemRecuo') return 'ZeroRecoil_Stabilizer';
+          if (key === 'ff4xSensi') return 'FF4X_Sensi_Multiplier';
+          if (key === 'ffHeadshot') return 'HeadshotForceVector';
+          if (key === 'macroPC') return 'MacroEmu_capacitive';
+          if (key === 'miraPerfeita') return 'NoShakingTracking';
+          return key;
+        });
+
+      const activeXits = Object.entries(xitSettings)
+        .filter(([_, val]) => val)
+        .map(([key, _]) => {
+          if (key === 'autoCapa') return 'Aimlock_AutoCapa_HS';
+          if (key === 'hitboxAmpliado') return 'HitboxRadiusMultiplier';
+          if (key === 'espLine3d') return 'ESP_DrawOverlay_Lines';
+          if (key === 'bypassAntiBan') return 'AntiCheatBypassLogs';
+          return key;
+        });
+
+      const timestamp = new Date().toLocaleTimeString('pt-BR');
+      const lines: string[] = [];
+
+      if (activeRegs.length === 0 && activeXits.length === 0) {
+        lines.push(`[${timestamp}] [Aguardando] Conexão ativa com o Free Fire... DPI=${sensitivities.dpi}`);
+      } else {
+        const rand = Math.floor(Math.random() * 3);
+        if (rand === 0 && activeRegs.length > 0) {
+          const reg = activeRegs[Math.floor(Math.random() * activeRegs.length)];
+          lines.push(`[${timestamp}] [Background-Regedit] Compensação de toque ativa na calibragem ${reg} ... [Ativa]`);
+        } else if (rand === 1 && activeXits.length > 0) {
+          const xit = activeXits[Math.floor(Math.random() * activeXits.length)];
+          lines.push(`[${timestamp}] [Background-Xit] Injetor tático do ${xit} sintonizado em jogo ... [Estável]`);
+        } else {
+          lines.push(`[${timestamp}] [Segundo-Plano] Calibração de DPI (${sensitivities.dpi}) enviada com latência de resposta ${sensitivities.velocidadeToque}ms`);
+        }
+      }
+
+      setBackgroundLogs(prev => {
+        const next = [...prev, ...lines];
+        if (next.length > 25) {
+          return next.slice(next.length - 25);
+        }
+        return next;
+      });
+    }, 3800);
+
+    return () => clearInterval(interval);
+  }, [backgroundEngineActive, regedits, xitSettings, sensitivities.dpi, sensitivities.velocidadeToque]);
 
   // Monitoring active changes on Auth
   useEffect(() => {
@@ -216,6 +299,34 @@ export default function App() {
     setConfigName(`Clone: ${player.name}`);
 
     showToastNotification(`SENSI DE ${player.name.toUpperCase()} CLONADA COM SUCESSO!`);
+  };
+
+  // Direct Free Fire game launcher caller conforming to Android intents
+  const handleLaunchFreefire = () => {
+    sound.playVIPUpgrade();
+    setIsLaunchingGame(true);
+    setLaunchStep(0);
+    
+    const steps = [
+      () => setLaunchStep(1), // intent ACTION_VIEW
+      () => setLaunchStep(2), // package: com.dts.freefireth
+      () => setLaunchStep(3), // DPI Forces
+      () => setLaunchStep(4), // Overlay Setup
+      () => {
+        setLaunchStep(5);
+        // Direct package codes for Android as seen in first screenshot
+        const intentUrl = "intent://#Intent;package=com.dts.freefireth;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;end";
+        try {
+          window.location.href = intentUrl;
+        } catch (e) {
+          console.warn("Intent redirection blocked or unsupported in current environment.");
+        }
+      }
+    ];
+
+    steps.forEach((stepFn, i) => {
+      setTimeout(stepFn, (i + 1) * 800);
+    });
   };
 
   // Cloud & local creation profile triggers
@@ -469,6 +580,228 @@ export default function App() {
                     <span className="font-sans font-bold text-[9px] text-[#22c55e] tracking-widest uppercase">
                       SISTEMA ATUALIZADO DIARIAMENTE • 100% ANTI BAN
                     </span>
+                  </div>
+                </div>
+
+                {/* 🚀 CENTRAL LAUNCHER & SOBREPOSIÇÃO (DIRECT CODES com.dts.freefireth) */}
+                <div className="bg-[#111] border border-[#222]/80 rounded-xl p-3.5 space-y-3 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-[#ff1b1b]/5 rounded-full blur-xl pointer-events-none"></div>
+                  
+                  {/* Header */}
+                  <div className="flex items-center justify-between pb-1">
+                    <div className="flex items-center gap-1.5">
+                      <Cpu size={14} className="text-[#ff1b1b] animate-pulse" />
+                      <span className="text-[10px] text-zinc-200 font-orbitron font-extrabold tracking-widest uppercase">
+                        LAUNCHER DIRECT-FF CODES
+                      </span>
+                    </div>
+                    <span className="text-[7.5px] font-mono font-bold text-[#ffb300] bg-[#ffb300]/10 border border-[#ffb300]/20 px-2 py-0.5 rounded tracking-widest uppercase">
+                      KERNEL v2.8
+                    </span>
+                  </div>
+
+                  {/* Informative Grid */}
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {/* Item 1: Overlay Permission SYSTEM_ALERT_WINDOW (Second FT matching) */}
+                    <div className="bg-black/50 border border-zinc-900 rounded-lg p-2.5 flex items-center justify-between transition-colors hover:border-zinc-850">
+                      <div className="flex items-start gap-2 max-w-[200px]">
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${overlayPermissionGranted ? 'bg-green-950/40 border border-green-800/40 text-[#22c55e]' : 'bg-amber-950/40 border border-amber-800/40 text-[#ffb300]'}`}>
+                          <Shield size={14} className={overlayPermissionGranted ? '' : 'animate-bounce'} />
+                        </div>
+                        <div>
+                          <span className="font-sans font-extrabold text-[10.5px] text-white block uppercase tracking-wide">
+                            SOBREPOSIÇÃO FF
+                          </span>
+                          <span className="font-mono text-[7.5px] text-gray-500 block">
+                            SYSTEM_ALERT_WINDOW
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {overlayPermissionGranted ? (
+                          <div className="flex flex-col items-end">
+                            <button
+                              onClick={() => {
+                                sound.playClick();
+                                const nextVal = !overlayActive;
+                                setOverlayActive(nextVal);
+                                localStorage.setItem('ipz_overlay_active', String(nextVal));
+                                showToastNotification(nextVal ? 'HUD FLUTUANTE EXIBIDO!' : 'HUD FLUTUANTE RECOLHIDO.');
+                              }}
+                              className={`text-[8.5px] font-orbitron font-bold px-2 py-1 rounded transition-all ${overlayActive ? 'bg-[#ff1b1b]/15 text-[#ff1b1b] border border-[#ff1b1b]/30' : 'bg-zinc-800 text-gray-400 border border-zinc-750'}`}
+                            >
+                              {overlayActive ? 'HUD EXIBIDO' : 'HUD OCULTO'}
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              sound.playClick();
+                              setShowPermissionDialog(true);
+                            }}
+                            className="bg-[#ff1b1b] hover:bg-red-700 text-white font-orbitron font-black text-[8.5px] px-2.5 py-1.5 rounded tracking-widest uppercase flex items-center gap-1 shadow-[0_2px_8px_rgba(255,27,27,0.3)] animate-pulse"
+                          >
+                            AUTORIZAR
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Item 2: Large Launch Button (First FT matching) */}
+                    <div className="relative">
+                      <button
+                        onClick={handleLaunchFreefire}
+                        className="w-full bg-gradient-to-r from-red-700 via-[#ff1b1b] to-red-600 hover:from-red-600 hover:to-red-700 text-white font-orbitron font-black text-[11px] py-3 rounded-xl tracking-widest uppercase transition-all flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(255,27,27,0.4)] relative overflow-hidden group active:scale-98 cursor-pointer"
+                      >
+                        <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.15)_50%,transparent_75%)] bg-[length:250px_250px] animate-shimmer pointer-events-none"></div>
+                        <Play size={13} className="fill-current text-white" />
+                        <span>INICIAR FREE FIRE PREMIUM</span>
+                      </button>
+                      <div className="text-center mt-1.5">
+                        <span className="text-[7.5px] font-mono text-gray-500 uppercase tracking-widest">
+                          INICIALIZADOR AUTO com.dts.freefireth • INTENT ACTION_VIEW
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ⚡ SERVIÇO EM SEGUNDO PLANO: REGEDIT & XIT ACTIVE DIRECT MONITOR */}
+                <div className="bg-[#111] border border-[#222]/80 rounded-xl p-3.5 space-y-3 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-16 h-16 bg-[#22c55e]/5 rounded-full blur-xl pointer-events-none"></div>
+                  
+                  {/* Title and control switch */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <Layers size={13} className="text-[#22c55e] animate-pulse" />
+                      <span className="text-[10px] text-zinc-200 font-orbitron font-extrabold tracking-widest uppercase">
+                        NÚCLEO REGEDIT SEGUNDO PLANO
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[7px] font-mono text-zinc-500 uppercase">ENGINE:</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const nextState = !backgroundEngineActive;
+                          setBackgroundEngineActive(nextState);
+                          sound.playClick();
+                          if (nextState) {
+                            showToastNotification("MOTOR SEGUNDO PLANO ATIVADO!");
+                          } else {
+                            showToastNotification("MOTOR EM SEGUNDO PLANO SUSPENSO.");
+                          }
+                        }}
+                        className={`w-9 h-5 rounded-full p-0.5 transition-colors duration-200 shrink-0 ${
+                          backgroundEngineActive ? 'bg-[#22c55e]' : 'bg-zinc-800'
+                        }`}
+                      >
+                        <div className={`w-3.5 h-3.5 bg-white rounded-full transition-transform ${backgroundEngineActive ? 'translate-x-[16px]' : ''}`}></div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Operational Telemetry summary */}
+                  <div className="bg-black/40 border border-[#222]/60 p-2.5 rounded-lg space-y-2 text-left">
+                    <div className="flex justify-between items-center text-[8.5px] font-mono border-b border-zinc-900 pb-1.5">
+                      <span className="text-zinc-500 uppercase text-[7.5px]">Módulos Sincronizados:</span>
+                      <span className="text-white font-extrabold">
+                        {Object.values(regedits).filter(Boolean).length} / 5 Ativos
+                      </span>
+                    </div>
+
+                    {/* Active Cheat Xit List Status */}
+                    <div className="grid grid-cols-2 gap-1 text-[8px] font-mono leading-relaxed pb-1 border-b border-zinc-900">
+                      <div>
+                        <span className="text-zinc-500">Auto HS:</span>{' '}
+                        <span className={xitSettings.autoCapa ? "text-[#ff1b1b] font-bold" : "text-zinc-600"}>
+                          {xitSettings.autoCapa ? "INJETADO 100%" : "DESATIVADO"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-zinc-500">Hitbox:</span>{' '}
+                        <span className={xitSettings.hitboxAmpliado ? "text-amber-500 font-bold" : "text-zinc-600"}>
+                          {xitSettings.hitboxAmpliado ? "EXPANDIDO" : "DESATIVADO"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-zinc-500">ESP Over:</span>{' '}
+                        <span className={xitSettings.espLine3d ? "text-[#22c55e] font-bold" : "text-zinc-600"}>
+                          {xitSettings.espLine3d ? "DESENHANDO" : "DESATIVADO"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-zinc-500">Anti-Ban:</span>{' '}
+                        <span className={xitSettings.bypassAntiBan ? "text-green-500 font-bold" : "text-zinc-600"}>
+                          {xitSettings.bypassAntiBan ? "PROTEGIDO" : "VULNERÁVEL"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Dynamic Log stream terminal */}
+                    <div className="bg-[#030303] border border-zinc-950 rounded p-2 h-20 overflow-y-auto font-mono text-[7.5px] text-[#22c55e] space-y-0.5 select-all scrollbar-thin scrollbar-thumb-zinc-900">
+                      {backgroundLogs.map((log, index) => (
+                        <div key={index} className="truncate select-text">
+                          <span className="text-zinc-600 font-sans mr-0.5">»</span> {log}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Fast direct toggle shortcuts of xit scripts */}
+                  <div className="grid grid-cols-3 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newVal = !xitSettings.autoCapa;
+                        setXitSettings(prev => ({ ...prev, autoCapa: newVal }));
+                        sound.playVIPUpgrade();
+                        showToastNotification(newVal ? "AIMLOCK HEADSHOT ATIVADO EM 2º PLANO!" : "AIMLOCK DESLIGADO.");
+                      }}
+                      className={`py-1 px-1 rounded-[6px] text-[7.5px] font-orbitron tracking-wide font-black border transition-all truncate ${
+                        xitSettings.autoCapa 
+                          ? 'bg-[#ff1b1b]/10 border-[#ff1b1b] text-[#ff1b1b] shadow-[0_0_8px_rgba(255,27,27,0.2)]' 
+                          : 'bg-zinc-950 border-zinc-900 text-zinc-500 hover:border-zinc-800'
+                      }`}
+                    >
+                      XIT AUTO-CAPA
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newVal = !xitSettings.hitboxAmpliado;
+                        setXitSettings(prev => ({ ...prev, hitboxAmpliado: newVal }));
+                        sound.playVIPUpgrade();
+                        showToastNotification(newVal ? "HITBOX MULTIPLIER INJETADOR ACTIVO!" : "HITBOX NORMALIZADO.");
+                      }}
+                      className={`py-1 px-1 rounded-[6px] text-[7.5px] font-orbitron tracking-wide font-black border transition-all truncate ${
+                        xitSettings.hitboxAmpliado
+                          ? 'bg-amber-500/10 border-amber-500 text-amber-500 animate-pulse' 
+                          : 'bg-zinc-950 border-zinc-900 text-zinc-500 hover:border-zinc-800'
+                      }`}
+                    >
+                      XIT HITBOX
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newVal = !xitSettings.espLine3d;
+                        setXitSettings(prev => ({ ...prev, espLine3d: newVal }));
+                        sound.playVIPUpgrade();
+                        showToastNotification(newVal ? "SOBREPOSIÇÃO ESP DRAW 2º PLANO ATIVADO!" : "DRAW OVERLAY ESP DESLIGADO.");
+                      }}
+                      className={`py-1 px-1 rounded-[6px] text-[7.5px] font-orbitron tracking-wide font-black border transition-all truncate ${
+                        xitSettings.espLine3d
+                          ? 'bg-[#22c55e]/10 border-[#22c55e] text-[#22c55e] shadow-[0_0_8px_rgba(34,197,94,0.2)]' 
+                          : 'bg-zinc-950 border-zinc-900 text-zinc-500 hover:border-zinc-800'
+                      }`}
+                    >
+                      XIT ESP HUD
+                    </button>
                   </div>
                 </div>
 
@@ -1475,6 +1808,544 @@ export default function App() {
             )}
           </button>
         </div>
+
+        {/* SIMULADO ANDROID PERMISSION DIALOG */}
+        <AnimatePresence>
+          {showPermissionDialog && (
+            <motion.div
+              initial={{ opacity: 0, y: '100%' }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+              className="absolute inset-0 bg-black z-50 flex flex-col font-sans text-[#e0e0e0]"
+            >
+              {/* Android Blue Header Bar */}
+              <div className="px-4 py-3 bg-[#0d47a1] text-white flex items-center justify-between shadow-md shrink-0">
+                <button 
+                  onClick={() => {
+                    sound.playToggleOff();
+                    setShowPermissionDialog(false);
+                  }}
+                  className="p-1 hover:bg-black/10 rounded-full transition-colors font-bold"
+                >
+                  ✕
+                </button>
+                <span className="font-sans font-semibold text-sm tracking-wide flex-1 ml-4 text-left">
+                  Gerenciador de Permissões
+                </span>
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <Search size={15} className="text-white/80" />
+                </div>
+              </div>
+
+              {/* Simulated Search bar & settings layout */}
+              <div className="p-4 bg-[#111] border-b border-zinc-900 shrink-0">
+                <div className="flex items-center gap-2 bg-[#222] border border-zinc-800 px-3 py-1.5 rounded-lg">
+                  <Search size={14} className="text-gray-400" />
+                  <input
+                    type="text"
+                    value="aler"
+                    readOnly
+                    className="flex-1 bg-transparent text-xs text-white outline-none"
+                  />
+                  <span className="text-gray-500 text-xs">✕</span>
+                </div>
+                <p className="text-[9px] text-[#ff1b1b] mt-2 tracking-widest font-mono font-bold uppercase">
+                  SOBREPOSIÇÃO SENSIPLUS EXIGIDA (SYSTEM_ALERT_WINDOW)
+                </p>
+              </div>
+
+              {/* Android Permission List */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                <div className="bg-[#0c0c0c] border border-[#222] p-4 rounded-xl space-y-3.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-mono font-semibold tracking-wide text-gray-300">
+                      android.permission.SYSTEM_ALERT_WINDOW
+                    </span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={overlayPermissionGranted}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          if (checked) {
+                            sound.playVIPUpgrade();
+                            setOverlayPermissionGranted(true);
+                            setOverlayActive(true);
+                            localStorage.setItem('ipz_overlay_permission', 'true');
+                            localStorage.setItem('ipz_overlay_active', 'true');
+                            showToastNotification("SOBREPOSIÇÃO ATIVADA EM SEGUNDO PLANO!");
+                            setTimeout(() => {
+                              setShowPermissionDialog(false);
+                            }, 1200);
+                          } else {
+                            sound.playToggleOff();
+                            setOverlayPermissionGranted(false);
+                            localStorage.setItem('ipz_overlay_permission', 'false');
+                          }
+                        }}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-zinc-805 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#ff1b1b] peer-checked:after:bg-white"></div>
+                    </label>
+                  </div>
+
+                  <p className="text-[10px] text-gray-500 leading-relaxed font-sans text-left">
+                    Esta permissão é obrigatória para que o painel de sensibilidade premium <strong className="text-gray-305">IPZ SENSI PREMIUM</strong> desenhe um botão de controle flutuante flutuando na tela por cima do jogo Free Fire. Sem isso, a injeção do kernel não será capaz de sincronizar a telemetria com a atividade <code className="text-red-400 font-mono">com.dts.freefireth</code> em tempo real.
+                  </p>
+                </div>
+
+                <div className="p-3.5 bg-yellow-950/20 border border-yellow-800/20 rounded-xl flex items-start gap-2.5">
+                  <AlertCircle size={15} className="text-[#ffb300] shrink-0 mt-0.5 animate-pulse" />
+                  <div className="flex-1 pointer-events-none text-left">
+                    <span className="text-[9.5px] font-bold text-[#ffb300] block uppercase tracking-wider font-orbitron">
+                      VERIFICAÇÃO DE ASSISTÊNCIA DE MIRA
+                    </span>
+                    <p className="text-[10px] text-gray-400 leading-snug mt-1">
+                      A ativação simula o overlay drawing habilitando a mira tática e suporte rápido. Você pode desativar esta sobreposição a qualquer momento no botão central.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom footer bar */}
+              <div className="p-4 bg-[#0a0a0a] border-t border-zinc-900 flex justify-end gap-3 shrink-0">
+                <button
+                  onClick={() => {
+                    sound.playToggleOff();
+                    setShowPermissionDialog(false);
+                  }}
+                  className="font-sans font-medium text-xs text-gray-400 hover:text-white px-3 py-1.5 rounded transition-transform active:scale-95 cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => {
+                    sound.playVIPUpgrade();
+                    setOverlayPermissionGranted(true);
+                    setOverlayActive(true);
+                    localStorage.setItem('ipz_overlay_permission', 'true');
+                    localStorage.setItem('ipz_overlay_active', 'true');
+                    showToastNotification("SISTEMA OVERLAY DESIGNADO COM SUCESSO!");
+                    setShowPermissionDialog(false);
+                  }}
+                  className="font-sans font-black text-xs bg-[#ff1b1b] text-white hover:bg-red-700 px-4 py-2 rounded shadow-md tracking-wider uppercase transition-transform active:scale-95 cursor-pointer"
+                >
+                  Conceder Permissão
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* IMMERSIVE HOLLOW BOOSTER & FF LAUNCH SIMULATION */}
+        <AnimatePresence>
+          {isLaunchingGame && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/95 z-50 flex flex-col justify-center items-center p-6 text-center select-none font-sans"
+            >
+              {/* Rotating radar graphic */}
+              <div className="relative mb-6">
+                <motion.div 
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                  className="w-20 h-20 rounded-full border-2 border-dashed border-[#ff1b1b]/40 flex items-center justify-center animate-spin-slow"
+                />
+                <div className="absolute inset-2 bg-gradient-to-br from-zinc-950 to-neutral-900 border border-[#ff1b1b]/60 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(255,27,27,0.4)]">
+                  <Target size={24} className="text-[#ff1b1b] animate-pulse" />
+                </div>
+              </div>
+
+              {/* Progress counter */}
+              <span className="text-[20px] font-orbitron font-extrabold text-white tracking-widest block uppercase mb-1">
+                COMPILANDO INTENTS
+              </span>
+              <span className="font-mono text-[9px] text-[#ffb300] bg-orange-950/20 px-2 py-0.5 rounded border border-orange-800/30 uppercase tracking-[0.2em]">
+                PACKAGE: com.dts.freefireth
+              </span>
+
+              {/* Simulated Intent compilation Logs */}
+              <div className="w-full bg-[#050505] border border-zinc-900 rounded-lg p-3 my-5 font-mono text-[9px] text-zinc-500 text-left space-y-1.5 h-32 overflow-y-auto">
+                {launchStep >= 0 && (
+                  <p className="text-zinc-400">
+                    <span className="text-[#ff1b1b]">&gt;</span> [Intent] Instanciando canais de controle...
+                  </p>
+                )}
+                {launchStep >= 1 && (
+                  <p className="text-green-400">
+                    <span className="text-green-500">&gt;</span> [Intent] definirAção(intentAction: ACTION_VIEW) <span className="text-white">OK!</span>
+                  </p>
+                )}
+                {launchStep >= 2 && (
+                  <p className="text-green-400">
+                    <span className="text-green-500">&gt;</span> [Intent] set app package(&quot;com.dts.freefireth&quot;) <span className="text-white">CONCLUÍDO!</span>
+                  </p>
+                )}
+                {launchStep >= 3 && (
+                  <p className="text-[#ffb300]">
+                    <span className="text-[#ffb300]">&gt;</span> [Kernel] Calibrando DPI force para {sensitivities.dpi} e {boosterValue}x boost...
+                  </p>
+                )}
+                {launchStep >= 4 && (
+                  <p className="text-blue-400">
+                    <span className="text-blue-400">&gt;</span> [Overlay] Habilitando assistente do SYSTEM_ALERT_WINDOW...
+                  </p>
+                )}
+                {launchStep >= 5 && (
+                  <p className="text-white font-bold animate-pulse">
+                    <span className="text-[#ff1b1b]">&gt;</span> [Dispositivo] IniciarAtividade(Intent: it) -&gt; LAUNCH MASTER!
+                  </p>
+                )}
+              </div>
+
+              {/* Direct fallback trigger message */}
+              {launchStep === 5 ? (
+                <motion.div 
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="space-y-4 w-full"
+                >
+                  <p className="text-[10px] text-gray-300 leading-relaxed max-w-xs mx-auto">
+                    🚀 <strong>O pulso do Intent foi enviado ao seu dispositivo Android!</strong> Caso o Free Fire não abra de forma direta, use o link redundante da Play Store abaixo ou retorne.
+                  </p>
+
+                  <div className="flex flex-col gap-2">
+                    <a
+                      href="https://play.google.com/store/apps/details?id=com.dts.freefireth"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-zinc-900 border border-zinc-800 hover:border-white/20 text-white font-orbitron font-extrabold text-[9px] py-2 px-3 rounded uppercase tracking-wider flex items-center justify-center gap-1.5"
+                    >
+                      <span>ABRIR NA PLAY STORE DIRECT</span>
+                      <ExternalLink size={10} />
+                    </a>
+
+                    <button
+                      onClick={() => {
+                        sound.playToggleOff();
+                        setIsLaunchingGame(false);
+                      }}
+                      className="bg-[#ff1b1b] hover:bg-red-700 text-white font-orbitron font-black text-[9px] py-1.5 px-4 rounded-lg uppercase tracking-wide transition-colors cursor-pointer"
+                    >
+                      RETORNAR AO PAINEL IPZ
+                    </button>
+                  </div>
+                </motion.div>
+              ) : (
+                <div className="w-full bg-[#111] h-1.5 rounded-full overflow-hidden mb-6">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(launchStep / 5) * 100}%` }}
+                    transition={{ ease: "easeInOut" }}
+                    className="h-full bg-gradient-to-r from-red-600 to-[#ff1b1b]"
+                  />
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* FLOATING ACTION OVERLAY DOT & PANEL */}
+        {overlayPermissionGranted && overlayActive && (
+          <>
+            {/* The Floating Button Trigger (Locked inside phone container) */}
+            <motion.button
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => {
+                sound.playClick();
+                setShowExpandedOverlayHUD(!showExpandedOverlayHUD);
+              }}
+              className="absolute bottom-20 right-4 z-40 bg-gradient-to-b from-[#ff1b1b] to-black text-white rounded-full w-12 h-12 border border-[#ff1b1b] shadow-[0_0_15px_rgba(255,27,27,0.6)] flex items-center justify-center cursor-pointer select-none"
+              title="IPZ Overlay HUD"
+            >
+              <span className="absolute -top-1 -right-1 bg-[#22c55e] text-[6.5px] px-1 py-0.2 rounded font-orbitron font-black tracking-widest text-black animate-pulse">
+                ON
+              </span>
+              <Target size={22} className="text-white animate-pulse" />
+            </motion.button>
+
+            {/* Expanded Holographic Overlay Panel (Simulation of a drawer UI menu) */}
+            <AnimatePresence>
+              {showExpandedOverlayHUD && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, y: 30 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: 30 }}
+                  className="absolute bottom-34 right-4 z-45 w-72 bg-black/95 border-2 border-[#ff1b1b] rounded-2xl p-4 shadow-[0_0_25px_rgba(255,27,27,0.7)] font-sans text-left"
+                >
+                  {/* Neon border glow effect */}
+                  <div className="absolute inset-0 bg-[#ff1b1b]/3 blur-xl pointer-events-none" />
+
+                  {/* Header widget */}
+                  <div className="flex items-center justify-between border-b border-[#222] pb-2 mb-3.5">
+                    <div className="flex items-center gap-1.5">
+                      <Target size={13} className="text-[#ff1b1b] animate-ping shrink-0" />
+                      <span className="font-orbitron font-black text-[10px] text-white tracking-widest uppercase">
+                        IPZ HUD OVERLAY
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        sound.playToggleOff();
+                        setShowExpandedOverlayHUD(false);
+                      }}
+                      className="text-gray-500 hover:text-white font-mono text-[9px] uppercase hover:bg-white/5 px-1.5 py-0.5 rounded border border-zinc-900 cursor-pointer"
+                    >
+                      OCULTAR ✕
+                    </button>
+                  </div>
+
+                  {/* Fast Telemetry Stats inside Overlay HUD */}
+                  <div className="grid grid-cols-2 gap-2 mb-3">
+                    <div className="bg-[#050505] p-2 rounded-lg border border-zinc-900">
+                      <span className="text-[7.5px] font-mono text-gray-500 block uppercase">
+                        DPI FORCE ACTIVE
+                      </span>
+                      <span className="text-[11px] font-orbitron font-extrabold text-[#ffe2a5]">
+                        {sensitivities.dpi} DPI
+                      </span>
+                    </div>
+                    <div className="bg-[#050505] p-2 rounded-lg border border-zinc-900">
+                      <span className="text-[7.5px] font-mono text-gray-500 block uppercase">
+                        BOOSTER POWER
+                      </span>
+                      <span className="text-[11px] font-orbitron font-extrabold text-[#ff1b1b]">
+                        {boosterValue}x ACCEL
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Quick toggle settings slider inside game simulation */}
+                  <div className="space-y-2 bg-[#080808] border border-zinc-900/60 p-2 text-left rounded-xl">
+                    <div className="flex justify-between items-center text-[8px] font-mono">
+                      <span className="text-gray-400 uppercase">LATÊNCIA DE RESPOSTA</span>
+                      <span className="text-white font-bold">{sensitivities.velocidadeToque}ms</span>
+                    </div>
+                    
+                    {/* Live fast calibration actions */}
+                    <div className="grid grid-cols-2 gap-1.5 pt-1">
+                      <button
+                        onClick={() => {
+                          sound.playVIPUpgrade();
+                          setSensitivities(prev => ({ ...prev, velocidadeToque: Math.max(0, prev.velocidadeToque - 10) }));
+                          showToastNotification("LATÊNCIA OTIMIZADA PARA O JOGO!");
+                        }}
+                        className="bg-zinc-950 border border-[#ff1b1b]/20 hover:border-[#ff1b1b]/60 text-[8px] font-mono text-[#ff1b1b] py-1 rounded cursor-pointer"
+                      >
+                        REDUZIR LATÊNCIA
+                      </button>
+                      <button
+                        onClick={() => {
+                          sound.playVIPUpgrade();
+                          const originalDpi = sensitivities.dpi;
+                          setSensitivities(prev => ({ ...prev, dpi: Math.min(1200, prev.dpi + 50) }));
+                          showToastNotification(`DPI EM JOGO ENVOLVIDO: +50 DPI!`);
+                        }}
+                        className="bg-zinc-950 border border-amber-500/20 hover:border-amber-500/60 text-[8px] font-mono text-[#ffb300] py-1 rounded cursor-pointer"
+                      >
+                        INJETAR +50 DPI
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Interactive Mod Switches inside Overlay */}
+                  <div className="mt-3 bg-[#080808] border border-zinc-900/60 p-2.5 rounded-xl text-left space-y-2">
+                    <span className="text-[7.5px] font-mono text-gray-500 block uppercase tracking-wider">
+                      MENU DE TRABALHO DAEMON (XIT / REGEDIT)
+                    </span>
+                    
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {/* Auto-Capa switcher */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newVal = !xitSettings.autoCapa;
+                          setXitSettings(prev => ({ ...prev, autoCapa: newVal }));
+                          sound.playVIPUpgrade();
+                          showToastNotification(newVal ? "AIMLOCK ATIVADO EM 2º PLANO!" : "AIMLOCK DESLIGADO.");
+                        }}
+                        className={`flex items-center justify-between p-1 rounded border text-[7.5px] font-mono transition-colors ${
+                          xitSettings.autoCapa 
+                            ? 'bg-red-950/20 border-[#ff1b1b] text-[#ff1b1b]' 
+                            : 'bg-[#030303] border-zinc-900 text-gray-400'
+                        }`}
+                      >
+                        <span className="truncate">AUTO CAPA</span>
+                        <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${xitSettings.autoCapa ? 'bg-[#ff1b1b] animate-pulse' : 'bg-zinc-850'}`}></div>
+                      </button>
+
+                      {/* Hitbox switcher */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newVal = !xitSettings.hitboxAmpliado;
+                          setXitSettings(prev => ({ ...prev, hitboxAmpliado: newVal }));
+                          sound.playVIPUpgrade();
+                          showToastNotification(newVal ? "HITBOX EXPANDIDO!" : "HITBOX NORMALIZADO.");
+                        }}
+                        className={`flex items-center justify-between p-1 rounded border text-[7.5px] font-mono transition-colors ${
+                          xitSettings.hitboxAmpliado 
+                            ? 'bg-amber-950/20 border-amber-500 text-amber-500' 
+                            : 'bg-[#030303] border-zinc-900 text-gray-400'
+                        }`}
+                      >
+                        <span className="truncate">HITBOX</span>
+                        <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${xitSettings.hitboxAmpliado ? 'bg-amber-500 animate-pulse' : 'bg-zinc-850'}`}></div>
+                      </button>
+
+                      {/* ESP Grid Overlay switcher */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newVal = !xitSettings.espLine3d;
+                          setXitSettings(prev => ({ ...prev, espLine3d: newVal }));
+                          sound.playVIPUpgrade();
+                          showToastNotification(newVal ? "ESP TEXT OVERLAY ATIVADO!" : "ESP HUD RECOLHIDO.");
+                        }}
+                        className={`flex items-center justify-between p-1 rounded border text-[7.5px] font-mono transition-colors ${
+                          xitSettings.espLine3d 
+                            ? 'bg-green-950/20 border-[#22c55e] text-[#22c55e]' 
+                            : 'bg-[#030303] border-zinc-900 text-gray-400'
+                        }`}
+                      >
+                        <span className="truncate">ESP LINES</span>
+                        <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${xitSettings.espLine3d ? 'bg-[#22c55e] animate-pulse' : 'bg-zinc-850'}`}></div>
+                      </button>
+
+                      {/* Global Background Service switcher */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newVal = !backgroundEngineActive;
+                          setBackgroundEngineActive(newVal);
+                          sound.playClick();
+                          showToastNotification(newVal ? "MOTOR EM 2º PLANO ATIVO!" : "MOTOR SUSPENSO.");
+                        }}
+                        className={`flex items-center justify-between p-1 rounded border text-[7.5px] font-mono transition-colors ${
+                          backgroundEngineActive 
+                            ? 'bg-blue-950/20 border-blue-500 text-blue-400' 
+                            : 'bg-[#030303] border-zinc-900 text-gray-400'
+                        }`}
+                      >
+                        <span className="truncate">BACKGROUND SEV</span>
+                        <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${backgroundEngineActive ? 'bg-blue-400 animate-pulse' : 'bg-zinc-850'}`}></div>
+                      </button>
+                    </div>
+
+                    {/* Active Regedits Subtext summary */}
+                    <div className="text-[7.5px] font-mono border-t border-zinc-900 pt-1.5 flex justify-between">
+                      <span className="text-zinc-500">Módulos Regedit:</span>
+                      <span className="text-green-400 font-bold">
+                        {Object.values(regedits).filter(Boolean).length} / 5 ONLINE
+                      </span>
+                    </div>
+
+                    {/* Miniature live ticker logs inside the HUD overlay panel */}
+                    {backgroundEngineActive ? (
+                      <div className="bg-[#030303] border border-zinc-950 rounded p-1.5 h-14 overflow-y-auto font-mono text-[6.5px] text-[#22c55e] space-y-0.5 scrollbar-none">
+                        <div className="text-zinc-500 uppercase flex items-center gap-1">
+                          <span className="inline-block w-1 h-1 rounded-full bg-[#22c55e] animate-ping shrink-0" />
+                          <span className="truncate">Background Daemon Activo</span>
+                        </div>
+                        {backgroundLogs.slice(-2).map((log, index) => (
+                          <div key={index} className="truncate text-teal-400 flex items-center gap-0.5">
+                            <span className="text-zinc-500">›</span> {log}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="bg-red-950/10 border border-red-900/20 rounded p-1 text-center font-mono text-[6.5px] text-red-500 uppercase">
+                        ⚠️ Motor segundo plano pausado
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Bottom dismiss trigger */}
+                  <div className="mt-4 pt-2 border-t border-[#222]">
+                    <button
+                      onClick={handleLaunchFreefire}
+                      className="w-full bg-[#ff1b1b] hover:bg-red-700 text-white font-orbitron font-bold text-[9px] py-1.5 rounded uppercase tracking-wider transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                    >
+                      <Play size={9} className="fill-current text-white" />
+                      <span>LAUNCH COM_DTS_FREEFIRETH</span>
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </>
+        )}
+
+        {/* 🎖️ LIVE ESP OVERLAY WALLHACK SIMULATOR (XIT SEGUNDO PLANO) */}
+        {overlayPermissionGranted && overlayActive && xitSettings.espLine3d && (
+          <div className="absolute inset-0 pointer-events-none z-30 select-none overflow-hidden bg-transparent">
+            {/* Tracer lines from center crosshair to target tags */}
+            <svg className="absolute inset-0 w-full h-full opacity-75">
+              <line x1="50%" y1="50%" x2="25%" y2="30%" stroke="#22c55e" strokeWidth="1" strokeDasharray="3 3" />
+              <line x1="50%" y1="50%" x2="72%" y2="60%" stroke="#ff1b1b" strokeWidth="1" strokeDasharray="1" />
+            </svg>
+
+            {/* Target 1 Box (Top left) */}
+            <motion.div
+              animate={{
+                x: [20, 24, 18, 20],
+                y: [160, 155, 165, 160]
+              }}
+              transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+              className="absolute border border-green-500 bg-green-500/5 px-1 py-0.5 rounded flex flex-col text-[7px] font-mono font-bold text-green-400 gap-0.5 shadow-[0_0_10px_rgba(34,197,94,0.3)]"
+              style={{ width: '52px', height: '62px' }}
+            >
+              <span className="bg-[#22c55e] text-black text-[5.5px] px-0.5 py-0.1 select-none flex justify-between font-black uppercase text-center rounded-xs">
+                <span>LVL. 72</span>
+                <span className="text-white">12m</span>
+              </span>
+              <div className="flex-1 flex items-center justify-center text-[8px] animate-pulse">
+                🎯 LOCK HS
+              </div>
+              <div className="w-full bg-zinc-900 h-1 rounded-full overflow-hidden">
+                <div className="bg-green-500 h-full w-4/5"></div>
+              </div>
+              <span className="text-center font-bold text-[5px] scale-90">IPZ VIRTUAL_ESP</span>
+            </motion.div>
+
+            {/* Target 2 Box (Bottom right) */}
+            <motion.div
+              animate={{
+                x: [260, 255, 265, 260],
+                y: [490, 505, 480, 490],
+              }}
+              transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }}
+              className="absolute border border-red-500 bg-red-500/5 px-1 py-0.5 rounded flex flex-col text-[7px] font-mono font-bold text-red-500 gap-0.5 shadow-[0_0_10px_rgba(239,68,68,0.3)]"
+              style={{ width: '58px', height: '68px' }}
+            >
+              <span className="bg-[#ff1b1b] text-white text-[5.5px] px-0.5 py-0.1 flex justify-between font-black uppercase text-center rounded-xs">
+                <span>NOOB_HUNTER</span>
+                <span>38m</span>
+              </span>
+              <div className="flex-1 flex items-center justify-center text-[7.5px] text-[#ffb300]">
+                ⚡ BODY LOCK
+              </div>
+              <div className="w-full bg-zinc-900 h-1 rounded-full overflow-hidden">
+                <div className="bg-red-500 h-full w-2/5 animate-pulse"></div>
+              </div>
+              <span className="text-center font-bold text-[5px] scale-90">MIRA INATIVA</span>
+            </motion.div>
+
+            {/* Center Aim Indicator */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none">
+              <div className="w-7 h-7 border border-red-500/35 rounded-full animate-spin-slow"></div>
+              <div className="absolute w-2 h-2 bg-red-500 rounded-full animate-ping"></div>
+              <div className="absolute w-1 h-1 bg-red-500 rounded-full"></div>
+              <span className="absolute top-4 text-[6px] font-mono text-red-500 font-bold bg-black/60 px-1 py-0.5 rounded whitespace-nowrap uppercase tracking-widest scale-90">
+                XIT BACKGROUND: LOCK_AIM
+              </span>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
