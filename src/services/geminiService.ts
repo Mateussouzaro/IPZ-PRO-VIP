@@ -40,7 +40,7 @@ export async function analyzeGameplayWithGemini(
     const targetPersona = personaMap[activePlayerId || 'nobru'] || personaMap.nobru;
 
     const promptMessage = `
-      Você é o "COACH SENSIPRO IA" e deve assumir a Persona e o estilo do lendário jogador focado: ${targetPersona}.
+      Você é o "COACH IPZ SENSI PREMIUM" IA e deve assumir a Persona e o estilo do lendário jogador focado: ${targetPersona}.
       Use as gírias dele, chame o jogador pela gíria respectiva e fale exatamente com o vocabulário, ritmo e paixão característicos deste pro-player!
       
       DADOS DO JOGADOR RECEBIDOS:

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Crown, Smartphone, Shield, Zap, Target, Sliders, ShoppingBag, 
+  Crown, Smartphone, Shield, Zap, Target, Sliders, Gauge, 
   Settings, Heart, Download, Upload, Plus, Search, HelpCircle, 
   Volume2, VolumeX, LogIn, LogOut, Check, Sparkles, User, AlertCircle, FileCode, CheckCircle, Flame
 } from 'lucide-react';
@@ -279,7 +279,7 @@ export default function App() {
   const handleExportConfig = () => {
     sound.playVIPUpgrade();
     const manifest = {
-      app: 'IPZ SENSIPRO',
+      app: 'IPZ SENSI PREMIUM',
       version: '2.8.4',
       date: new Date().toISOString(),
       configName: configName,
@@ -309,7 +309,7 @@ export default function App() {
       reader.onload = (e) => {
         try {
           const imported = JSON.parse(e.target?.result as string);
-          if (imported.app === 'IPZ SENSIPRO' && imported.sensitivities) {
+          if ((imported.app === 'IPZ SENSI PREMIUM' || imported.app === 'IPZ SENSI PREMIUM!!' || imported.app === 'IPZ SENSIPRO') && imported.sensitivities) {
             sound.playVIPUpgrade();
             
             setConfigName(imported.configName || 'Importado Premium');
@@ -322,7 +322,7 @@ export default function App() {
             showToastNotification('TELEMETRIA IMPORTADA E CALIBRADA!');
           } else {
             sound.playToggleOff();
-            alert('Erro: Arquivo JSON não compatível com telemetria IPZ SENSIPRO.');
+            alert('Erro: Arquivo JSON não compatível com telemetria IPZ SENSI PREMIUM.');
           }
         } catch (err) {
           sound.playToggleOff();
@@ -415,7 +415,7 @@ export default function App() {
           <div className="flex items-center gap-2">
             <Crown size={15} className="text-[#ff1b1b] filter drop-shadow-[5px_5px_8px_rgba(255,27,27,0.8)] fill-[#ff1b1b]/10" />
             <span className="font-orbitron font-extrabold text-[13px] text-white tracking-widest">
-              IPZ <span className="text-[#ff1b1b]">SENSIPRO</span>
+              IPZ <span className="text-[#ff1b1b]">SENSI PREMIUM</span>
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -1136,7 +1136,7 @@ export default function App() {
                 {/* VIP Showcase market cards */}
                 <div className="space-y-2.5">
                   <span className="text-[10px] text-gray-400 font-mono tracking-widest uppercase pl-1 block">
-                    ITENS DE ELITE SENSIPRO PREMIUM
+                    ITENS DE ELITE IPZ SENSI PREMIUM
                   </span>
 
                   <div className="border border-zinc-900 bg-gradient-to-b from-[#111]/60 to-black rounded-2xl p-4 flex justify-between items-center relative overflow-hidden group">
@@ -1244,7 +1244,7 @@ export default function App() {
                         <User size={22} className="text-[#ff1b1b]" />
                       </div>
                       <span className="font-sans font-bold text-xs text-white uppercase block">
-                        SINCRO CLOUD DE PRESETS SENSIPRO
+                        SINCRO CLOUD DE PRESETS IPZ SENSI PREMIUM
                       </span>
                       <p className="text-[10px] text-gray-500 mt-1.5 max-w-[245px] mx-auto leading-relaxed">
                         Faça login utilizando Google para guardar suas sensibilidades salvas diretamente na nuvem 100% Anti Ban.
@@ -1451,13 +1451,13 @@ export default function App() {
             )}
           </button>
 
-          {/* TAB 3: Loja (VIP/Otimização) */}
+          {/* TAB 3: Otimização (VIP/Otimização) */}
           <button
             onClick={() => playTabChange('loja')}
             className={`flex flex-col items-center justify-center p-2 relative shrink-0 ${activeTab === 'loja' ? 'text-[#ff1b1b]' : 'text-gray-500 hover:text-white'}`}
           >
-            <ShoppingBag size={18} className={activeTab === 'loja' ? 'filter drop-shadow-[0_0_4px_#ff1b1b]' : ''} />
-            <span className="text-[10px] font-orbitron font-extrabold tracking-wider uppercase mt-1">Loja</span>
+            <Gauge size={18} className={activeTab === 'loja' ? 'filter drop-shadow-[0_0_4px_#ff1b1b]' : ''} />
+            <span className="text-[10px] font-orbitron font-extrabold tracking-wider uppercase mt-1">Otimização</span>
             {activeTab === 'loja' && (
               <motion.div layoutId="active-line" className="absolute -bottom-0.5 w-6 h-0.5 bg-[#ff1b1b]" />
             )}

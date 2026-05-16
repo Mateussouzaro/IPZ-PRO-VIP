@@ -218,7 +218,7 @@ export default function CoachIA({
               UPLOADING GAME PLAY CLIP...
             </span>
             <span className="text-[10px] font-mono text-gray-500 mt-1">
-              Transferindo canais de vídeo para a rede SENSIPRO IA
+              Transferindo canais de vídeo para a rede IPZ SENSI PREMIUM IA
             </span>
 
             {/* Progress line */}

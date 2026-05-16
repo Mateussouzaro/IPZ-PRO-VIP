@@ -12,7 +12,7 @@ export default function GamerLoader({ onComplete }: GamerLoaderProps) {
   const [statusIndex, setStatusIndex] = useState(0);
 
   const statuses = [
-    'BOOTING IPZ_SENSIPRO FRAMEWORK...',
+    'BOOTING IPZ_SENSI_PREMIUM KERNEL...',
     'CONNECTING SECURE DATABASE...',
     'LOADING HIGH-FREQ ENGINES...',
     'LOAD REGEDIT KERNEL STAGE-1...',
@@ -85,7 +85,7 @@ export default function GamerLoader({ onComplete }: GamerLoaderProps) {
         </div>
 
         <h1 className="text-2xl font-black tracking-widest text-white mb-1">
-          IPZ <span className="text-[#ff1b1b]">SENSIPRO</span>
+          IPZ <span className="text-[#ff1b1b]">SENSI PREMIUM</span>
         </h1>
         <p className="text-[10px] text-[#ffb300] font-bold tracking-[0.25em] h-4 uppercase translate-y-1 mb-8">
           MOBILES MODS • PREMIUM HUD
