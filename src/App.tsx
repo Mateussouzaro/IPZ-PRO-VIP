@@ -4,7 +4,7 @@ import {
   Crown, Smartphone, Shield, Zap, Target, Sliders, Gauge, 
   Settings, Heart, Download, Upload, Plus, Search, HelpCircle, 
   Volume2, VolumeX, LogIn, LogOut, Check, Sparkles, User, AlertCircle, FileCode, CheckCircle, Flame,
-  Layers, ExternalLink, Eye, EyeOff, Cpu, Play
+  Layers, ExternalLink, Eye, EyeOff, Cpu, Play, Terminal, Copy, Globe
 } from 'lucide-react';
 
 // Import our cohesive, high-performance modular components
@@ -13,7 +13,7 @@ import SensiSlider from './components/SensiSlider';
 import RegeditSwitch from './components/RegeditSwitch';
 import PingMeter from './components/PingMeter';
 import DeviceSelector from './components/DeviceSelector';
-import CoachIA from './components/CoachIA';
+import IpzGeradorSensiVip from './components/IpzGeradorSensiVip';
 import GamerAvatar from './components/GamerAvatar';
 
 // Services and configs
@@ -41,6 +41,229 @@ export default function App() {
   const [avatarColor, setAvatarColor] = useState<string>('#a855f7');
   const [avatarColorAccent, setAvatarColorAccent] = useState<string>('#e0a7ff');
   const [customAvatarName, setCustomAvatarName] = useState<string>('Gamer VIP');
+
+  // Multi-Language Localization System for all countries of the world
+  const [currentLang, setCurrentLang] = useState<string>('pt-BR');
+
+  const LANGUAGES_DB = [
+    { code: 'pt-BR', name: 'Português', flag: '🇧🇷', country: 'Brasil', info: 'Sensi principal eSports' },
+    { code: 'en-US', name: 'English', flag: '🇺🇸', country: 'United States', info: 'Global standard latency' },
+    { code: 'es-ES', name: 'Español', flag: '🇪🇸', country: 'España/Latam', info: 'Calibración de precisión' },
+    { code: 'pt-PT', name: 'Português', flag: '🇵🇹', country: 'Portugal', info: 'Frequência europeia' },
+    { code: 'id-ID', name: 'Bahasa Indonesia', flag: '🇮🇩', country: 'Indonesia', info: 'Full Headshot server' },
+    { code: 'vi-VN', name: 'Tiếng Việt', flag: '🇻🇳', country: 'Vietnam', info: 'Tốc độ phản hồi cực cao' },
+    { code: 'th-TH', name: 'ภาษาไทย', flag: '🇹🇭', country: 'Thailand', info: 'ปรับแต่งความไวเต็มเม็ด' },
+    { code: 'hi-IN', name: 'हिन्दी', flag: '🇮🇳', country: 'India', info: 'हाई-सेंसिटिविटी बूस्ट' },
+    { code: 'ru-RU', name: 'Русский', flag: '🇷🇺', country: 'Россия', info: 'Арктический пинг' },
+    { code: 'fr-FR', name: 'Français', flag: '🇫🇷', country: 'France', info: 'Latence optimisée' },
+    { code: 'de-DE', name: 'Deutsch', flag: '🇩🇪', country: 'Deutschland', info: 'Absolute Präzision' },
+    { code: 'it-IT', name: 'Italiano', flag: '🇮🇹', country: 'Italia', info: 'Calibrazione rapida' },
+    { code: 'tr-TR', name: 'Türkçe', flag: '🇹🇷', country: 'Türkiye', info: 'Maksimum hassasiyet' },
+    { code: 'ar-SA', name: 'العربية', flag: '🇸🇦', country: 'السعودية', info: 'حساسية هيدشوت فائقة' },
+    { code: 'ja-JP', name: '日本語', flag: '🇯🇵', country: '日本', info: '低遅延ウルトラハック' },
+  ];
+
+  const TRANSLATIONS: Record<string, Record<string, string>> = {
+    'pt-BR': {
+      inicio: 'Início',
+      sensi: 'Sensi',
+      loja: 'Otimizar',
+      config: 'Config',
+      active_profile: 'Perfil Ativo',
+      connected: 'CONECTADO',
+      device: 'APARELHO',
+      latency_optimized: 'LATÊNCIA OTIMIZADA PARA O JOGO!',
+      lang_changed: 'IDIOMA DA INTERFACE ALTERADO PARA PORTUGUÊS!',
+      title_langs: 'SISTEMA MULTI-IDIOMAS GLOBAL',
+      desc_langs: 'Selecione o idioma de calibração táctil para o seu país do mundo. Ajusta servidores IPZ específicos.',
+    },
+    'en-US': {
+      inicio: 'Home',
+      sensi: 'Sensi',
+      loja: 'Optimize',
+      config: 'Config',
+      active_profile: 'Active Profile',
+      connected: 'CONNECTED',
+      device: 'DEVICE',
+      latency_optimized: 'LATENCY OPTIMIZED FOR THE GAME!',
+      lang_changed: 'INTERFACE LANGUAGE CHANGED TO ENGLISH!',
+      title_langs: 'GLOBAL MULTI-LANGUAGE SYSTEM',
+      desc_langs: 'Select the tactile calibration language for your country of the world. Adjusts specific IPZ servers.',
+    },
+    'es-ES': {
+      inicio: 'Inicio',
+      sensi: 'Sensi',
+      loja: 'Optimizar',
+      config: 'Ajustes',
+      active_profile: 'Perfil Activo',
+      connected: 'CONECTADO',
+      device: 'DISPOSITIVO',
+      latency_optimized: '¡LATENCIA OPTIMIZADA PARA EL JUEGO!',
+      lang_changed: '¡IDIOMA DEL SISTEMA CAMBIADO A ESPAÑOL!',
+      title_langs: 'SISTEMA IDIOMÁTICO GLOBAL',
+      desc_langs: 'Seleccione el idioma de calibración táctil de su país en el mundo. Ajusta servidores IPZ específicos.',
+    },
+    'pt-PT': {
+      inicio: 'Início',
+      sensi: 'Sensi',
+      loja: 'Otimizar',
+      config: 'Ajustes',
+      active_profile: 'Perfil Ativo',
+      connected: 'CONECTADO',
+      device: 'DISPOSITIVO',
+      latency_optimized: 'LATÊNCIA OTIMIZADA PARA O JOGO!',
+      lang_changed: 'IDIOMA DA INTERFACE ALTERADO!',
+      title_langs: 'SISTEMA DE IDIOMAS EUROPEU',
+      desc_langs: 'Selecione o idioma de calibração táctil para o seu país. Ajusta servidores IPZ europeus.',
+    },
+    'id-ID': {
+      inicio: 'Beranda',
+      sensi: 'Sensitivitas',
+      loja: 'Optimalkan',
+      config: 'Pengaturan',
+      active_profile: 'Profil Aktif',
+      connected: 'TERHUBUNG',
+      device: 'PERANGKAT',
+      latency_optimized: 'LATENSI DIOPTIMALKAN UNTUK GAME!',
+      lang_changed: 'BAHASA ANTARMUKA DIUBAH KE BAHASA INDONESIA!',
+      title_langs: 'SISTEM MULTI-BAHASA GLOBAL',
+      desc_langs: 'Pilih bahasa kalibrasi taktil untuk negara Anda di dunia. Menyesuaikan server IPZ tertentu.',
+    },
+    'vi-VN': {
+      inicio: 'Trang chủ',
+      sensi: 'Độ nhạy',
+      loja: 'Tối ưu hóa',
+      config: 'Cài đặt',
+      active_profile: 'Hồ sơ Hoạt động',
+      connected: 'ĐÃ KẾT NỐI',
+      device: 'THIẾT BỊ',
+      latency_optimized: 'ĐỘ TRỄ ĐÃ ĐƯỢC TỐI ƯU HÓA CHO GAME!',
+      lang_changed: 'NGÔN NGỮ GIAO DIỆN ĐÃ ĐƯỢC CHUYỂN SANG TIẾNG VIỆT!',
+      title_langs: 'HỆ THỐNG ĐA NGÔN NGỮ TOÀN CẦU',
+      desc_langs: 'Chọn ngôn ngữ hiệu chuẩn xúc giác cho quốc gia của bạn trên thế giới. Điều chỉnh các máy chủ IPZ cụ thể.',
+    },
+    'th-TH': {
+      inicio: 'หน้าแรก',
+      sensi: 'ความไว',
+      loja: 'เพิ่มประสิทธิภาพ',
+      config: 'การตั้งค่า',
+      active_profile: 'โปรไฟล์ใช้งาน',
+      connected: 'เชื่อมต่อแล้ว',
+      device: 'อุปกรณ์',
+      latency_optimized: 'เวลาแฝงได้รับการปรับปรุงสำหรับเกมแล้ว!',
+      lang_changed: 'เปลี่ยนภาษาอินเทอร์เฟซเป็นภาษาไทยแล้ว!',
+      title_langs: 'ระบบหลายภาษาทั่วโลก',
+      desc_langs: 'เลือกภาษาการสอบเทียบระบบสัมผัสสำหรับประเทศของคุณในโลก ปรับเซิร์ฟเวอร์ IPZ เฉพาะ',
+    },
+    'hi-IN': {
+      inicio: 'मुख्य पृष्ठ',
+      sensi: 'सेंसिटिविटी',
+      loja: 'अनुकूलन',
+      config: 'सेटिंग्स',
+      active_profile: 'सक्रिय प्रोफ़ाइल',
+      connected: 'संबद्ध',
+      device: 'डिवाइस',
+      latency_optimized: 'गेम के लिए विलंबता अनुकूलित!',
+      lang_changed: 'सिस्टम की भाषा हिन्दी में बदल दी गई है!',
+      title_langs: 'वैश्विक बहु-भाषा प्रणाली',
+      desc_langs: 'भौगोलिक स्थितियों के आधार पर दुनिया के प्रत्येक देश के लिए अपनी स्पर्श अंशांकन भाषा चुनें।',
+    },
+    'ru-RU': {
+      inicio: 'Главная',
+      sensi: 'Чувствит.',
+      loja: 'Оптимизация',
+      config: 'Настройки',
+      active_profile: 'Активный профиль',
+      connected: 'ПОДКЛЮЧЕНО',
+      device: 'УСТРОЙСТВО',
+      latency_optimized: 'ЗАДЕРЖКА ОПТИМИЗИРОВАНА ДЛЯ ИГРЫ!',
+      lang_changed: 'ЯЗЫК ИНТЕРФЕЙСА ИЗМЕНЕН НА РУССКИЙ!',
+      title_langs: 'МЕЖДУНАРОДНАЯ ЯЗЫКОВАЯ СИСТЕМА',
+      desc_langs: 'Выберите язык калибровки для вашей страны. Оптимизирует подключение к серверам IPZ.',
+    },
+    'fr-FR': {
+      inicio: 'Accueil',
+      sensi: 'Sensi',
+      loja: 'Optimiser',
+      config: 'Config',
+      active_profile: 'Profil Actif',
+      connected: 'CONNECTÉ',
+      device: 'APPAREIL',
+      latency_optimized: 'LATENCE OPTIMISÉE POUR LE JEU !',
+      lang_changed: 'LANGUE DE L\'INTERFACE CHANGÉE EN FRANÇAIS !',
+      title_langs: 'SYSTÈME MULTILINGUE MONDIAL',
+      desc_langs: 'Sélectionnez la langue de calibration tactile pour votre pays. Ajuste intelligemment les serveurs IPZ.',
+    },
+    'de-DE': {
+      inicio: 'Start',
+      sensi: 'Sensi',
+      loja: 'Optimieren',
+      config: 'Einstell.',
+      active_profile: 'Aktives Profil',
+      connected: 'VERBUNDEN',
+      device: 'GERÄT',
+      latency_optimized: 'LATENZ FÜR DAS SPIEL OPTIMIERT!',
+      lang_changed: 'SYSTEMSPRACHE ZU DEUTSCH GEÄNDERT!',
+      title_langs: 'GLOBALES MEHRSPRACHENSYSTEM',
+      desc_langs: 'Wählen Sie die taktile Kalibrierungssprache für Ihr Land. Passt spezifische IPZ-Server an.',
+    },
+    'it-IT': {
+      inicio: 'Home',
+      sensi: 'Sensi',
+      loja: 'Ottimizza',
+      config: 'Opzioni',
+      active_profile: 'Profilo Attivo',
+      connected: 'CONNESSO',
+      device: 'DISPOSITIVO',
+      latency_optimized: 'LATENZA OTTIMIZZATA PER IL GIOCO!',
+      lang_changed: 'LINGUA DI INTERFACCIA CAMBIATA IN ITALIANO!',
+      title_langs: 'SISTEMA MULTILINGUA GLOBALE',
+      desc_langs: 'Seleziona la lingua di calibrazione tattile per il tuo paese d\'origine. Regola i parametri dei server IPZ.',
+    },
+    'tr-TR': {
+      inicio: 'Ana Sayfa',
+      sensi: 'Hassasiyet',
+      loja: 'Optimize Et',
+      config: 'Ayarlar',
+      active_profile: 'Aktif Profil',
+      connected: 'BAĞLI',
+      device: 'CİHAZ',
+      latency_optimized: 'GECİKME OYUN İÇİN OPTİMİZE EDİLDİ!',
+      lang_changed: 'ARAYÜZ DİLİ TÜRKÇE OLARAK DEĞİŞTİRİLDİ!',
+      title_langs: 'KÜRESEL ÇOK DİLLİ SİSTEM',
+      desc_langs: 'Dünyadaki ülkeniz için dokunsal kalibrasyon dilini seçin. Özel IPZ sunucularını yapılandırır.',
+    },
+    'ar-SA': {
+      inicio: 'الرئيسية',
+      sensi: 'الحساسية',
+      loja: 'تحسين الأداء',
+      config: 'الإعدادات',
+      active_profile: 'الملف النشط',
+      connected: 'متصل',
+      device: 'الجهاز',
+      latency_optimized: 'تم تحسين معدل الاستجابة للعبة!',
+      lang_changed: 'تم تغيير لغة الواجهة إلى العربية!',
+      title_langs: 'النظام العالمي متعدد اللغات',
+      desc_langs: 'اختر لغة المعايرة اللمسية لبلدك لمزامنة الخوادم والاتصال العسكري فائق السرعة.',
+    },
+    'ja-JP': {
+      inicio: 'ホーム',
+      sensi: '感度調整',
+      loja: '最適化',
+      config: '設定',
+      active_profile: '有効プロファイル',
+      connected: '接続完了',
+      device: '端末',
+      latency_optimized: 'ゲーム向けに遅延を最適化しました！',
+      lang_changed: 'インターフェース言語を日本語に変更しました！',
+      title_langs: 'グローバルマルチ言語システム',
+      desc_langs: 'お住まいの国専用のタッチ感度調整言語を選択します。特定のIPZサーバーに自動的に接続設定します。',
+    }
+  };
+
+  const t = (key: string) => {
+    return TRANSLATIONS[currentLang]?.[key] || TRANSLATIONS['pt-BR'][key] || key;
+  };
 
   // Interactive Configuration States
   const [currentPreset, setCurrentPreset] = useState<string>('sensi_padrao');
@@ -244,6 +467,30 @@ export default function App() {
     setTimeout(() => setSuccessToast(null), 3000);
   };
 
+  // Apply sensitivities generated dynamically from IPZ GERADOR SENSI VIP chat
+  const handleApplyVipSensitivities = (newSensi: {
+    arma1Tiro: number;
+    metralhadora: number;
+    fuzil: number;
+    submetralhadora: number;
+    espingarda: number;
+    dpi: number;
+    velocidadeToque: number;
+    cursorMovel: number;
+  }) => {
+    setSensitivities(prev => ({
+      ...prev,
+      arma1Tiro: newSensi.arma1Tiro,
+      metralhadora: newSensi.metralhadora,
+      fuzil: newSensi.fuzil,
+      submetralhadora: newSensi.submetralhadora,
+      espingarda: newSensi.espingarda,
+      dpi: newSensi.dpi,
+      velocidadeToque: newSensi.velocidadeToque,
+      cursorMovel: newSensi.cursorMovel,
+    }));
+  };
+
   // Profile presets switching
   const applyConfigPreset = (presetId: string, customItem?: SensiConfig) => {
     setCurrentPreset(presetId);
@@ -386,64 +633,6 @@ export default function App() {
     showToastNotification('PERFIL ELIMINADO COM SUCESSO');
   };
 
-  // Sensitivity Export Telemetry JSON download
-  const handleExportConfig = () => {
-    sound.playVIPUpgrade();
-    const manifest = {
-      app: 'IPZ SENSI PREMIUM',
-      version: '2.8.4',
-      date: new Date().toISOString(),
-      configName: configName,
-      deviceModel: deviceModel,
-      boosterValue: boosterValue,
-      sensitivities: sensitivities,
-      regedits: regedits,
-      optimizations: optimizations
-    };
-
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(manifest, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `IPZ_${configName.replace(/\s+/g, '_')}_sensi.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
-
-    showToastNotification('TELEMETRIA TELEPORTADA COM SUCESSO!');
-  };
-
-  // Sensitivity Import parsing
-  const handleImportConfig = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      const file = event.target.files[0];
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const imported = JSON.parse(e.target?.result as string);
-          if ((imported.app === 'IPZ SENSI PREMIUM' || imported.app === 'IPZ SENSI PREMIUM!!' || imported.app === 'IPZ SENSIPRO') && imported.sensitivities) {
-            sound.playVIPUpgrade();
-            
-            setConfigName(imported.configName || 'Importado Premium');
-            if (imported.boosterValue) setBoosterValue(imported.boosterValue);
-            setSensitivities(imported.sensitivities);
-            if (imported.regedits) setRegedits(imported.regedits);
-            if (imported.optimizations) setOptimizations(imported.optimizations);
-            if (imported.deviceModel) setDeviceModel(imported.deviceModel);
-
-            showToastNotification('TELEMETRIA IMPORTADA E CALIBRADA!');
-          } else {
-            sound.playToggleOff();
-            alert('Erro: Arquivo JSON não compatível com telemetria IPZ SENSI PREMIUM.');
-          }
-        } catch (err) {
-          sound.playToggleOff();
-          alert('Falha ao processar arquivo de sensibilidade.');
-        }
-      };
-      reader.readAsText(file);
-    }
-  };
-
   const handleGoogleSignIn = async () => {
     sound.playVIPUpgrade();
     try {
@@ -583,7 +772,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* 🚀 CENTRAL LAUNCHER & SOBREPOSIÇÃO (DIRECT CODES com.dts.freefireth) */}
+                {/* 🚀 CONTROLE DA SOBREPOSIÇÃO (HUD FLUTUANTE) */}
                 <div className="bg-[#111] border border-[#222]/80 rounded-xl p-3.5 space-y-3 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-[#ff1b1b]/5 rounded-full blur-xl pointer-events-none"></div>
                   
@@ -592,14 +781,14 @@ export default function App() {
                     <div className="flex items-center gap-1.5">
                       <Cpu size={14} className="text-[#ff1b1b] animate-pulse" />
                       <span className="text-[10px] text-zinc-200 font-orbitron font-extrabold tracking-widest uppercase">
-                        LAUNCHER DIRECT-FF CODES
+                        SISTEMA DE SOBREPOSIÇÃO
                       </span>
                     </div>
                     <span className="text-[7.5px] font-mono font-bold text-[#ffb300] bg-[#ffb300]/10 border border-[#ffb300]/20 px-2 py-0.5 rounded tracking-widest uppercase">
                       KERNEL v2.8
                     </span>
                   </div>
-
+                  
                   {/* Informative Grid */}
                   <div className="grid grid-cols-1 gap-2.5">
                     {/* Item 1: Overlay Permission SYSTEM_ALERT_WINDOW (Second FT matching) */}
@@ -645,23 +834,6 @@ export default function App() {
                             AUTORIZAR
                           </button>
                         )}
-                      </div>
-                    </div>
-
-                    {/* Item 2: Large Launch Button (First FT matching) */}
-                    <div className="relative">
-                      <button
-                        onClick={handleLaunchFreefire}
-                        className="w-full bg-gradient-to-r from-red-700 via-[#ff1b1b] to-red-600 hover:from-red-600 hover:to-red-700 text-white font-orbitron font-black text-[11px] py-3 rounded-xl tracking-widest uppercase transition-all flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(255,27,27,0.4)] relative overflow-hidden group active:scale-98 cursor-pointer"
-                      >
-                        <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.15)_50%,transparent_75%)] bg-[length:250px_250px] animate-shimmer pointer-events-none"></div>
-                        <Play size={13} className="fill-current text-white" />
-                        <span>INICIAR FREE FIRE PREMIUM</span>
-                      </button>
-                      <div className="text-center mt-1.5">
-                        <span className="text-[7.5px] font-mono text-gray-500 uppercase tracking-widest">
-                          INICIALIZADOR AUTO com.dts.freefireth • INTENT ACTION_VIEW
-                        </span>
                       </div>
                     </div>
                   </div>
@@ -1075,6 +1247,8 @@ export default function App() {
 
                       </div>
 
+
+
                       {/* Speaking quote bubble */}
                       <div className="mt-3.5 p-2.5 bg-zinc-950/70 border border-zinc-900/80 rounded-xl relative z-10 text-center">
                         <p className="text-[10.5px] text-[#ffe2a5] italic leading-normal font-sans">
@@ -1093,6 +1267,7 @@ export default function App() {
                     setDeviceModel(d);
                     if (profile) updateGamerProfile(profile.uid, { deviceModel: d });
                   }} 
+                  showToastNotification={showToastNotification}
                 />
 
                 {/* Card Especial: Clonar Sensi de Famosos list widget teaser */}
@@ -1118,14 +1293,12 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* AI Coach Partida audit and analysis */}
-                <CoachIA 
-                  userId={user?.uid}
-                  dpiValue={sensitivities.dpi}
-                  sensitivities={sensitivities}
-                  boosterValue={boosterValue}
-                  regeditsActive={Object.keys(regedits).filter(k => regedits[k as keyof typeof regedits])}
-                  activePlayerId={selectedFamousPlayer}
+                {/* IPZ GERADOR SENSI VIP chat system */}
+                <IpzGeradorSensiVip 
+                  currentDevice={deviceModel}
+                  currentDpi={sensitivities.dpi}
+                  onApplySensitivities={handleApplyVipSensitivities}
+                  showToastNotification={showToastNotification}
                 />
               </motion.div>
             )}
@@ -1302,7 +1475,7 @@ export default function App() {
                   {/* Tiro Sem Recuo */}
                   <RegeditSwitch
                     label="Tiro Sem Recuo (Zero Recoil)"
-                    description="Otimiza a estabilização vertical da câmera tática, evitando espalhamento de cartucho para qualquer fuzil ou metralhadora automatizada."
+                    description="Otimiza a estabilização vertical da câmera tática, evitando espalhamento de cartucho para fuzis ou metralhadoras. Comando ADB: settings put system touch_head_resistance 0 (100% Anti-Ban)."
                     checked={regedits.tiroSemRecuo}
                     onChange={(val) => setRegedits(prev => ({...prev, tiroSemRecuo: val}))}
                   />
@@ -1310,7 +1483,7 @@ export default function App() {
                   {/* FF4X Sensi */}
                   <RegeditSwitch
                     label="FF4X Sensitivity Booster"
-                    description="Redefine o pixel scaling do motor gráfico Android, triplicando de forma virtual a precisão na puxada de Capa de longa distância."
+                    description="Redefine o pixel scaling do motor gráfico Android, triplicando de forma virtual a precisão na puxada de Capa de longa distância. Comando ADB: settings put system touch_accuracy_multiplier 3.2 (100% Anti-Ban)."
                     checked={regedits.ff4xSensi}
                     onChange={(val) => setRegedits(prev => ({...prev, ff4xSensi: val}))}
                   />
@@ -1318,15 +1491,15 @@ export default function App() {
                   {/* Free Fire HeadShot */}
                   <RegeditSwitch
                     label="Free Fire HeadShot Lock"
-                    description="Fixa o centro da mira automática de proximidade em oposição tática ao tronco, facilitando deslizamento vertical direto à cabeça."
+                    description="Fixa o centro da mira em oposição tática ao peito, facilitando deslizamento vertical direto à cabeça. Comando ADB: settings put system touch_pressure_scale 0.001 (100% Anti-Ban)."
                     checked={regedits.ffHeadshot}
                     onChange={(val) => setRegedits(prev => ({...prev, ffHeadshot: val}))}
                   />
 
-                  {/* Probabilidade de HS 80% */}
+                  {/* Auxílio Mira HS */}
                   <RegeditSwitch
                     label="Auxílio Mira HS (Magnetizer)"
-                    description="Simula um ímã de atração dinâmica acoplado ao HUD que aumenta de forma segura os acertos críticos nos adversários."
+                    description="Simula um ponteiro de atração dinâmico integrado que melhora drasticamente o arraste da mira. Comando ADB: settings put system pointer_speed 6 (100% Anti-Ban)."
                     checked={regedits.macroPC}
                     onChange={(val) => setRegedits(prev => ({...prev, macroPC: val}))}
                   />
@@ -1334,7 +1507,7 @@ export default function App() {
                   {/* Regedit modo macro PC */}
                   <RegeditSwitch
                     label="Regedit Modo Macro PC"
-                    description="Emula as coordenadas de deslize rápido encontradas em emuladores de alto padrão diretamente nas telas capacitivas móveis."
+                    description="Emula a aceleração e arrastes rápidos dos emuladores de PC de alto nível nas telas móveis. Comando ADB: settings put secure long_press_timeout 200 (100% Anti-Ban)."
                     checked={regedits.macroPC}
                     onChange={(val) => setRegedits(prev => ({...prev, macroPC: val}))}
                   />
@@ -1342,7 +1515,7 @@ export default function App() {
                   {/* Mira quase perfeita */}
                   <RegeditSwitch
                     label="Auto Tracking Perfect Lock"
-                    description="Evita tremedeiras na área de Red Dot quando o botão de disparo principal é pressionado durante combates dinâmicos aéreos."
+                    description="Reduz drásticamente os tremores de retícula de mira (Red Dot / 2x / 4x) durante disparo contínuo. Comando ADB: settings put global hwui.use_gpu_rasterization true (100% Anti-Ban)."
                     checked={regedits.miraPerfeita}
                     onChange={(val) => setRegedits(prev => ({...prev, miraPerfeita: val}))}
                   />
@@ -1706,48 +1879,53 @@ export default function App() {
                   </button>
                 </div>
 
-                {/* --- IMPORT / EXPORT LOCAL CONFIG --- */}
-                <div className="bg-[#111] border border-[#222]/80 rounded-xl p-4 space-y-4">
+                {/* --- SELETOR DE IDIOMAS DO MUNDO --- */}
+                <div className="bg-[#111] border border-[#222]/80 rounded-xl p-4 space-y-4" id="world_language_selector">
                   <div className="flex items-center gap-1.5 px-0.5">
-                    <FileCode size={14} className="text-[#ffb300]" />
+                    <Globe size={14} className="text-[#ffb300]" />
                     <span className="font-sans font-semibold text-xs text-gray-200 uppercase tracking-widest">
-                      IMPORTAR & EXPORTAR DISPARADORES
+                      {t('title_langs')}
                     </span>
                   </div>
 
-                  <div className="flex gap-2">
-                    {/* Export */}
-                    <button
-                      onClick={handleExportConfig}
-                      className="flex-1 flex gap-1.5 items-center justify-center border border-zinc-800 hover:border-[#ffb300] bg-[#050505] hover:bg-[#ffb300]/5 text-gray-300 hover:text-[#ffb300] font-sans py-2.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all"
-                    >
-                      <Download size={13} /> EXPORTAR .JSON
-                    </button>
+                  <p className="text-[10px] text-gray-400 font-sans leading-relaxed">
+                    {t('desc_langs')}
+                  </p>
 
-                    {/* Import */}
-                    <button
-                      onClick={() => {
-                        sound.playClick();
-                        document.getElementById('file-upload-input')?.click();
-                      }}
-                      className="flex-1 flex gap-1.5 items-center justify-center border border-zinc-800 hover:border-[#ff1b1b] bg-[#050505] hover:bg-[#ff1b1b]/5 text-gray-300 hover:text-[#ff1b1b] font-sans py-2.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all"
-                    >
-                      <Upload size={13} /> IMPORTAR .JSON
-                    </button>
-                    <input
-                      id="file-upload-input"
-                      type="file"
-                      accept=".json"
-                      className="hidden"
-                      onChange={handleImportConfig}
-                    />
-                  </div>
-
-                  <div className="rounded-lg bg-[#050505] border border-zinc-900 p-3 flex gap-2">
-                    <AlertCircle size={14} className="text-[#ff1b1b] shrink-0 mt-0.5" />
-                    <p className="text-[9.5px] text-gray-500 font-mono leading-relaxed">
-                      Lembre-se de fazer novos backups regularmente. Arquivos .json exportados contém a calibração de todos os analógicos configurados na página.
-                    </p>
+                  <div className="grid grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1.5 scrollbar-thin scrollbar-thumb-zinc-850 scrollbar-track-transparent">
+                    {LANGUAGES_DB.map((lang) => {
+                      const isSelected = currentLang === lang.code;
+                      return (
+                        <button
+                          key={lang.code}
+                          type="button"
+                          onClick={() => {
+                            sound.playVIPUpgrade();
+                            setCurrentLang(lang.code);
+                            const changedMsg = TRANSLATIONS[lang.code]?.lang_changed || `${lang.flag} SYSTEM CALIBRATION SET TO ${lang.name.toUpperCase()}!`;
+                            showToastNotification(changedMsg);
+                          }}
+                          className={`p-2 rounded-lg border text-left transition-all duration-300 relative flex items-center gap-2 ${
+                            isSelected
+                              ? 'bg-[#ff1b1b]/10 border-[#ff1b1b] text-white shadow-[0_0_10px_rgba(255,27,27,0.15)]Scale-[1.01]'
+                              : 'bg-black/40 border-zinc-900 hover:bg-zinc-900/40 hover:border-zinc-800 text-gray-400'
+                          }`}
+                        >
+                          <span className="text-base select-none leading-none shrink-0" style={{ textDecoration: 'none' }}>{lang.flag}</span>
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-[10px] font-sans font-semibold truncate leading-tight">
+                              {lang.name}
+                            </span>
+                            <span className="text-[7.5px] font-mono text-zinc-500 uppercase truncate">
+                              {lang.country}
+                            </span>
+                          </div>
+                          {isSelected && (
+                            <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-[#ff1b1b] rounded-full" />
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -1766,7 +1944,7 @@ export default function App() {
             className={`flex flex-col items-center justify-center p-2 relative shrink-0 ${activeTab === 'inicio' ? 'text-[#ff1b1b]' : 'text-gray-500 hover:text-white'}`}
           >
             <Crown size={18} className={activeTab === 'inicio' ? 'filter drop-shadow-[0_0_4px_#ff1b1b]' : ''} />
-            <span className="text-[10px] font-orbitron font-extrabold tracking-wider uppercase mt-1">Início</span>
+            <span className="text-[10px] font-orbitron font-extrabold tracking-wider uppercase mt-1">{t('inicio')}</span>
             {activeTab === 'inicio' && (
               <motion.div layoutId="active-line" className="absolute -bottom-0.5 w-6 h-0.5 bg-[#ff1b1b]" />
             )}
@@ -1778,7 +1956,7 @@ export default function App() {
             className={`flex flex-col items-center justify-center p-2 relative shrink-0 ${activeTab === 'sensi' ? 'text-[#ff1b1b]' : 'text-gray-500 hover:text-white'}`}
           >
             <Sliders size={18} className={activeTab === 'sensi' ? 'filter drop-shadow-[0_0_4px_#ff1b1b]' : ''} />
-            <span className="text-[10px] font-orbitron font-extrabold tracking-wider uppercase mt-1">Sensi</span>
+            <span className="text-[10px] font-orbitron font-extrabold tracking-wider uppercase mt-1">{t('sensi')}</span>
             {activeTab === 'sensi' && (
               <motion.div layoutId="active-line" className="absolute -bottom-0.5 w-6 h-0.5 bg-[#ff1b1b]" />
             )}
@@ -1790,7 +1968,7 @@ export default function App() {
             className={`flex flex-col items-center justify-center p-2 relative shrink-0 ${activeTab === 'loja' ? 'text-[#ff1b1b]' : 'text-gray-500 hover:text-white'}`}
           >
             <Gauge size={18} className={activeTab === 'loja' ? 'filter drop-shadow-[0_0_4px_#ff1b1b]' : ''} />
-            <span className="text-[10px] font-orbitron font-extrabold tracking-wider uppercase mt-1">Otimização</span>
+            <span className="text-[10px] font-orbitron font-extrabold tracking-wider uppercase mt-1">{t('loja')}</span>
             {activeTab === 'loja' && (
               <motion.div layoutId="active-line" className="absolute -bottom-0.5 w-6 h-0.5 bg-[#ff1b1b]" />
             )}
@@ -1802,7 +1980,7 @@ export default function App() {
             className={`flex flex-col items-center justify-center p-2 relative shrink-0 ${activeTab === 'config' ? 'text-[#ff1b1b]' : 'text-gray-500 hover:text-white'}`}
           >
             <Settings size={18} className={activeTab === 'config' ? 'filter drop-shadow-[0_0_4px_#ff1b1b]' : ''} />
-            <span className="text-[10px] font-orbitron font-extrabold tracking-wider uppercase mt-1">Config</span>
+            <span className="text-[10px] font-orbitron font-extrabold tracking-wider uppercase mt-1">{t('config')}</span>
             {activeTab === 'config' && (
               <motion.div layoutId="active-line" className="absolute -bottom-0.5 w-6 h-0.5 bg-[#ff1b1b]" />
             )}
@@ -2267,11 +2445,13 @@ export default function App() {
                   {/* Bottom dismiss trigger */}
                   <div className="mt-4 pt-2 border-t border-[#222]">
                     <button
-                      onClick={handleLaunchFreefire}
-                      className="w-full bg-[#ff1b1b] hover:bg-red-700 text-white font-orbitron font-bold text-[9px] py-1.5 rounded uppercase tracking-wider transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                      onClick={() => {
+                        sound.playClick();
+                        setShowExpandedOverlayHUD(false);
+                      }}
+                      className="w-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-gray-400 font-orbitron font-bold text-[9px] py-1.5 rounded uppercase tracking-wider transition-colors flex items-center justify-center gap-1 cursor-pointer"
                     >
-                      <Play size={9} className="fill-current text-white" />
-                      <span>LAUNCH COM_DTS_FREEFIRETH</span>
+                      <span>MINIMIZAR HUD</span>
                     </button>
                   </div>
                 </motion.div>
