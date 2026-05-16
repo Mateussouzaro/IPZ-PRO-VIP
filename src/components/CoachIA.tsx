@@ -5,6 +5,7 @@ import Markdown from 'react-markdown';
 import { sound } from '../services/soundService';
 import { analyzeGameplayWithGemini } from '../services/geminiService';
 import { saveCoachingRequest, updateCoachingResult, CoachingRequest } from '../services/firebaseService';
+import GamerAvatar from './GamerAvatar';
 
 interface CoachIAProps {
   userId: string;
@@ -18,6 +19,7 @@ interface CoachIAProps {
   };
   boosterValue: number;
   regeditsActive: string[];
+  activePlayerId?: string;
 }
 
 export default function CoachIA({
@@ -25,7 +27,8 @@ export default function CoachIA({
   dpiValue,
   sensitivities,
   boosterValue,
-  regeditsActive
+  regeditsActive,
+  activePlayerId = 'nobru'
 }: CoachIAProps) {
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -61,14 +64,15 @@ export default function CoachIA({
     // Create a local coaching record in our database if user is logged on
     const requestId = 'coach_' + Math.random().toString(36).substring(2, 11);
     
-    // Call our actual Gemini model analyzer
+    // Call our actual Gemini model analyzer with current active player ID persona
     const advice = await analyzeGameplayWithGemini(
       fileName,
       fileSizeStr,
       dpiValue,
       sensitivities,
       boosterValue,
-      regeditsActive
+      regeditsActive,
+      activePlayerId
     );
 
     const coachingTicket: CoachingRequest = {
@@ -245,15 +249,15 @@ export default function CoachIA({
               <Sparkles size={8} className="animate-pulse" /> CLOUD DEEP ANALYZER
             </div>
 
-            <div className="w-16 h-16 bg-[#ff1b1b]/10 border border-[#ff1b1b]/30 rounded-full flex items-center justify-center mb-5 animate-pulse">
-              <Sparkles size={28} className="text-[#ff1b1b] filter drop-shadow-[0_0_6px_#ff1b1b]" />
+            <div className="mb-5 flex justify-center">
+              <GamerAvatar id={activePlayerId} size="lg" animateBreathe={true} showScanner={true} />
             </div>
             
             <span className="font-orbitron text-xs text-[#ffb300] font-bold uppercase tracking-widest">
               SISTEMA ANALISANDO PUXADAS CAPA
             </span>
             <span className="text-[9px] font-mono text-gray-400 mt-1.5 leading-relaxed max-w-[210px] text-center">
-              Avaliando DPI ({dpiValue}), multiplicador ({boosterValue}x) e calibração de mira no vídeo...
+              Avaliando DPI ({dpiValue}), multiplicador ({boosterValue}x) e calibrando com IA de {activePlayerId.toUpperCase()}...
             </span>
 
             {/* Glowing neon spinner dots */}
@@ -282,6 +286,19 @@ export default function CoachIA({
               <span className="bg-[#22c55e]/15 text-[#22c55e] border border-[#22c55e]/30 text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">
                 AUDITORIA CONCLUÍDA
               </span>
+            </div>
+
+            {/* Speaking character box */}
+            <div className="flex items-center gap-3 mb-4 p-2.5 rounded-lg bg-[#111]/80 border border-zinc-900">
+              <GamerAvatar id={activePlayerId} size="md" isSpeaking={true} showScanner={false} />
+              <div>
+                <span className="text-[11px] font-orbitron font-extrabold text-white tracking-widest block">
+                  ANÁLISE DE {activePlayerId.toUpperCase()} IA
+                </span>
+                <span className="text-[9px] text-[#22c55e] font-mono tracking-wide block uppercase animate-pulse">
+                  MICROFONE ATIVO • ANALISADO
+                </span>
+              </div>
             </div>
 
             <div className="flex items-center gap-2 text-[#ffb300] font-bold text-xs font-mono uppercase tracking-wide mb-3">

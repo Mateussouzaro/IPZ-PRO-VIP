@@ -13,6 +13,7 @@ import RegeditSwitch from './components/RegeditSwitch';
 import PingMeter from './components/PingMeter';
 import DeviceSelector from './components/DeviceSelector';
 import CoachIA from './components/CoachIA';
+import GamerAvatar from './components/GamerAvatar';
 
 // Services and configs
 import { sound } from './services/soundService';
@@ -33,9 +34,16 @@ export default function App() {
 
   // Tab View Controller: 'inicio' | 'sensi' | 'loja' | 'config'
   const [activeTab, setActiveTab] = useState<'inicio' | 'sensi' | 'loja' | 'config'>('inicio');
+  const [useRealPhotos, setUseRealPhotos] = useState(false);
+
+  // Customizable AI Avatar Color States (Defaults to Roxo Apelão)
+  const [avatarColor, setAvatarColor] = useState<string>('#a855f7');
+  const [avatarColorAccent, setAvatarColorAccent] = useState<string>('#e0a7ff');
+  const [customAvatarName, setCustomAvatarName] = useState<string>('Gamer VIP');
 
   // Interactive Configuration States
   const [currentPreset, setCurrentPreset] = useState<string>('sensi_padrao');
+  const [selectedFamousPlayer, setSelectedFamousPlayer] = useState<string>('nobru');
   const [configName, setConfigName] = useState<string>('Parâmetro Sensi Padrão');
   const [deviceModel, setDeviceModel] = useState<string>('ASUS ROG Phone 8 Pro');
   
@@ -54,6 +62,16 @@ export default function App() {
   // Floating tooltip detail content
   const [activePresetInfo, setActivePresetInfo] = useState<string | null>(null);
 
+  // Load local storage custom avatar style preferences on startup
+  useEffect(() => {
+    const localColor = localStorage.getItem('ipz_avatar_color');
+    const localAccent = localStorage.getItem('ipz_avatar_accent');
+    const localName = localStorage.getItem('ipz_avatar_name');
+    if (localColor) setAvatarColor(localColor);
+    if (localAccent) setAvatarColorAccent(localAccent);
+    if (localName) setCustomAvatarName(localName);
+  }, []);
+
   // Monitoring active changes on Auth
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
@@ -63,6 +81,13 @@ export default function App() {
         if (userProfile) {
           setProfile(userProfile);
           setDeviceModel(userProfile.deviceModel);
+          if (userProfile.avatarColor) {
+            setAvatarColor(userProfile.avatarColor);
+            setAvatarColorAccent(userProfile.avatarColorAccent || '#e0a7ff');
+          }
+          if (userProfile.username) {
+            setCustomAvatarName(userProfile.username);
+          }
         } else {
           // Sync default profile if new registration
           const newProf: GamerProfile = {
@@ -70,10 +95,13 @@ export default function App() {
             email: firebaseUser.email || '',
             username: firebaseUser.displayName || 'Gamer VIP',
             avatarUrl: firebaseUser.photoURL || 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?q=80&w=150',
-            deviceModel: 'ASUS ROG Phone 8 Pro'
+            deviceModel: 'ASUS ROG Phone 8 Pro',
+            avatarColor: '#a855f7',
+            avatarColorAccent: '#e0a7ff',
           };
           await createGamerProfile(newProf);
           setProfile(newProf);
+          setCustomAvatarName(newProf.username);
         }
         // Fetch saved cloud configurations
         const cloudConfigs = await getGamerConfigs(firebaseUser.uid);
@@ -86,6 +114,33 @@ export default function App() {
     });
     return () => unsubscribe();
   }, []);
+
+  // Save selected avatar color details locally & remotely
+  const handleSaveAvatarStyle = async (color: string, accent: string, name: string) => {
+    sound.playVIPUpgrade();
+    localStorage.setItem('ipz_avatar_color', color);
+    localStorage.setItem('ipz_avatar_accent', accent);
+    localStorage.setItem('ipz_avatar_name', name);
+    
+    setAvatarColor(color);
+    setAvatarColorAccent(accent);
+    setCustomAvatarName(name);
+
+    if (user) {
+      try {
+        await updateGamerProfile(user.uid, {
+          avatarColor: color,
+          avatarColorAccent: accent,
+          username: name
+        });
+        const updatedProfile = await getGamerProfile(user.uid);
+        if (updatedProfile) setProfile(updatedProfile);
+      } catch (e) {
+        console.error('Error saving custom avatar profile structure', e);
+      }
+    }
+    showToastNotification(`MODELO IA DE COR "${color.toUpperCase()}" SALVO!`);
+  };
 
   // Set sound triggers
   const playTabChange = (tab: 'inicio' | 'sensi' | 'loja' | 'config') => {
@@ -142,6 +197,7 @@ export default function App() {
     // Multiplier matching
     setBoosterValue(player.boosterValue);
     setDeviceModel(player.deviceModel);
+    setSelectedFamousPlayer(player.id);
     
     // Sliders setting
     setSensitivities({
@@ -533,41 +589,169 @@ export default function App() {
 
                 {/* Seção Estilo de Sensi (Famous Players scroll) */}
                 <div className="space-y-2">
-                  <div className="pl-1">
+                  <div className="flex items-center justify-between pl-1">
                     <span className="text-[10px] text-gray-400 font-mono tracking-widest uppercase">
-                      ESTILO DE SENSI (PLAYERS)
+                      AVATARES E ESTILOS IA DE PLAYERS
+                    </span>
+                    <span
+                      className="text-[8px] font-orbitron font-extrabold flex items-center gap-1.5 bg-[#13111a] border border-[#a855f730] rounded px-2.5 py-1 tracking-widest text-[#a855f7] shadow-[0_2px_8px_rgba(0,0,0,0.4)]"
+                    >
+                      <Sparkles size={10} className="animate-pulse" />
+                      NÚCLEO IA ATIVO
                     </span>
                   </div>
                   
                   {/* Smooth horizontal scrollbar */}
                   <div className="flex gap-3 overflow-x-auto pb-2.5 pt-0.5 no-scrollbar select-none snap-x">
-                    {FAMOUS_PLAYERS.map((player) => (
-                      <button
-                        key={player.id}
-                        onClick={() => cloneFamousPlayerSensi(player)}
-                        className="flex flex-col items-center justify-center shrink-0 snap-center bg-[#111] hover:bg-[#1a1a1a] p-3 rounded-xl border border-zinc-900 hover:border-[#ff1b1b]/40 transition-all duration-300 w-24 relative overflow-hidden group"
-                      >
-                        <div className="absolute top-1 right-1">
-                          <Flame size={10} className="text-[#ff1b1b] animate-pulse" />
-                        </div>
-                        {/* Circle Avatar with custom styling glow or background indicators */}
-                        <div className="w-13 h-13 rounded-full overflow-hidden border-2 border-zinc-800 group-hover:border-[#ff1b1b] shadow-[0_0_8px_rgba(0,0,0,0.8)] transition-colors relative mb-2">
-                          <img 
-                            src={player.avatar} 
-                            alt={player.name} 
-                            className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 scale-105"
-                          />
-                        </div>
-                        <span className="text-[9px] font-sans font-bold text-gray-300 group-hover:text-white truncate w-full text-center tracking-wide">
-                          {player.name}
-                        </span>
-                        <span className="text-[7px] text-gray-500 font-mono mt-0.5 uppercase truncate w-full text-center">
-                          {player.deviceModel}
-                        </span>
-                      </button>
-                    ))}
+                    {FAMOUS_PLAYERS.map((player) => {
+                      const isCurrent = selectedFamousPlayer === player.id;
+                      return (
+                        <button
+                          key={player.id}
+                          onClick={() => cloneFamousPlayerSensi(player)}
+                          className={`flex flex-col items-center justify-center shrink-0 snap-center p-3 rounded-xl border transition-all duration-300 w-24 relative overflow-hidden group ${
+                            isCurrent
+                              ? 'bg-[#111] border-[#ff1b1b]/80 shadow-[0_0_12px_rgba(255,27,27,0.25)]'
+                              : 'bg-[#111] border-zinc-900 hover:border-zinc-700'
+                          }`}
+                        >
+                          <div className="absolute top-1 right-1">
+                            <Flame size={10} style={{ color: player.themeColor }} className="animate-pulse" />
+                          </div>
+                          
+                          {/* Animated AI character slot */}
+                          <div className="mb-2 relative">
+                            <GamerAvatar 
+                              id={player.id} 
+                              size="sm" 
+                              animateBreathe={isCurrent} 
+                              showScanner={isCurrent} 
+                              usePhoto={useRealPhotos}
+                            />
+                            {isCurrent && (
+                              <div className="absolute inset-x-0 bottom-[-2px] h-[2px] rounded" style={{ backgroundColor: player.themeColor }} />
+                            )}
+                          </div>
+
+                          <span className="text-[9px] font-sans font-bold text-gray-300 group-hover:text-white truncate w-full text-center tracking-wide">
+                            {player.name}
+                          </span>
+                          <span className="text-[7px] text-gray-500 font-mono mt-0.5 uppercase truncate w-full text-center">
+                            {player.deviceModel}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
+
+                {/* Holographic Active Player Interactive Dashboard */}
+                {(() => {
+                  const activePlayer = FAMOUS_PLAYERS.find(p => p.id === selectedFamousPlayer) || FAMOUS_PLAYERS[0];
+                  
+                  // Interactive speaking message quotes from each character
+                  const voiceQuotes: Record<string, string> = {
+                    nobru: '“Aura Roxa calibrada! Fé em Deus, tropinha, a mira não treme mais na hora de puxar aquele Capa Apelão de Carapina!”',
+                    cerol: '“Vapo! Sensi absurda de alta pro analógico deslizar leve igual dragão. Só ativa a Fúria Ígnea e chora pros Capas!”',
+                    thurzin: '“Timing cirúrgico ativado com snipers. Dente de metal na mira de metal e assistência tática com latência zerada.”',
+                    level_up: '“Rastreador e calibrador ativo. Ajuste fino de pixels 007 para movimentação rápida em todas as direções.”',
+                    bak: '“Bak na voz, tropa do rei. Emulador mobile completo, soberania de sensibilidade perfeita. O trono agora é seu.”'
+                  };
+
+                  return (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      key={`hologram-${selectedFamousPlayer}`}
+                      className="bg-gradient-to-b from-[#111] via-[#0b0b0f] to-[#050508] border rounded-2xl p-4 relative overflow-hidden select-none"
+                      style={{ borderColor: `${activePlayer.themeColor}35` }}
+                    >
+                      {/* Decorative grid laser scan overlay */}
+                      <div className="absolute inset-0 bg-radial-gradient from-transparent to-black pointer-events-none" />
+                      
+                      {/* Top status header banner */}
+                      <div className="flex items-center justify-between mb-3 border-b border-zinc-800/80 pb-2 relative z-10">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-1.5 h-1.5 rounded-full animate-ping" style={{ backgroundColor: activePlayer.themeColor }} />
+                          <span className="font-orbitron font-extrabold text-[9px] tracking-widest uppercase text-white">
+                            HOLOGRÁFICO ACTIVE PRO
+                          </span>
+                        </div>
+                        <span className="text-[7.5px] font-mono uppercase bg-zinc-900 border px-1.5 py-0.2 rounded text-gray-400" style={{ borderColor: `${activePlayer.themeColor}40` }}>
+                          IA CLONE ONLINE
+                        </span>
+                      </div>
+
+                      {/* Split Pane Details */}
+                      <div className="grid grid-cols-5 gap-3.5 items-center relative z-10">
+                        
+                        {/* Column Left: Big Animated breathing character */}
+                        <div className="col-span-2 flex flex-col items-center justify-center bg-zinc-950/40 p-2.5 rounded-xl border border-zinc-900/60 relative group">
+                          <GamerAvatar 
+                            id={activePlayer.id} 
+                            size="lg" 
+                            animateBreathe={true} 
+                            showScanner={true} 
+                            usePhoto={useRealPhotos}
+                          />
+                          <button
+                            onClick={() => {
+                              sound.playBoosterClick();
+                              showToastNotification(`TESTANDO TRANSMISSÃO DE ${activePlayer.name.toUpperCase()}`);
+                            }}
+                            className="mt-2.5 text-[7px] font-orbitron font-extrabold px-2 py-0.8 rounded text-white border transition-colors hover:bg-white/5 active:scale-95"
+                            style={{ borderColor: `${activePlayer.themeColor}50`, color: activePlayer.themeColor }}
+                          >
+                            CALIBRAR CANAL
+                          </button>
+                        </div>
+
+                        {/* Column Right: Stats and Ability Details */}
+                        <div className="col-span-3 space-y-2 text-left">
+                          <div>
+                            <span className="text-[12px] font-orbitron font-extrabold text-white uppercase tracking-wider block">
+                              {activePlayer.name}
+                            </span>
+                            <span className="text-[8px] font-mono tracking-widest uppercase text-gray-500 block">
+                              CALIBRAÇÃO: {activePlayer.deviceModel}
+                            </span>
+                          </div>
+
+                          {/* Skill passive box with themed background */}
+                          <div className="p-2 rounded-lg border bg-zinc-950/60 border-zinc-900">
+                            <span className="text-[9.5px] font-sans font-extrabold flex items-center gap-1" style={{ color: activePlayer.themeColor }}>
+                              <Crown size={9} className="fill-current" />
+                              HABILIDADE: {activePlayer.passiveName.toUpperCase()}
+                            </span>
+                            <p className="text-[10px] text-gray-400 leading-snug mt-0.5">
+                              {activePlayer.passiveDesc}
+                            </p>
+                          </div>
+
+                          {/* Radar Micro values bars */}
+                          <div className="space-y-1">
+                            <div className="flex justify-between items-center text-[8px] font-mono text-gray-500">
+                              <span>MIRA AUTOMÁTICA</span>
+                              <span className="text-gray-300">{activePlayer.id === 'thurzin' || activePlayer.id === 'level_up' ? '92%' : '98%'}</span>
+                            </div>
+                            <div className="w-full h-1 bg-zinc-900 rounded overflow-hidden">
+                              <div className="h-full rounded" style={{ width: activePlayer.id === 'thurzin' || activePlayer.id === 'level_up' ? '92%' : '98%', backgroundColor: activePlayer.themeColor }} />
+                            </div>
+                          </div>
+                        </div>
+
+                      </div>
+
+                      {/* Speaking quote bubble */}
+                      <div className="mt-3.5 p-2.5 bg-zinc-950/70 border border-zinc-900/80 rounded-xl relative z-10 text-center">
+                        <p className="text-[10.5px] text-[#ffe2a5] italic leading-normal font-sans">
+                          {voiceQuotes[activePlayer.id] || voiceQuotes.nobru}
+                        </p>
+                      </div>
+
+                    </motion.div>
+                  );
+                })()}
 
                 {/* Dispositivo Matching and detection */}
                 <DeviceSelector 
@@ -608,6 +792,7 @@ export default function App() {
                   sensitivities={sensitivities}
                   boosterValue={boosterValue}
                   regeditsActive={Object.keys(regedits).filter(k => regedits[k as keyof typeof regedits])}
+                  activePlayerId={selectedFamousPlayer}
                 />
               </motion.div>
             )}
@@ -997,19 +1182,34 @@ export default function App() {
                   {user ? (
                     <div className="flex flex-col items-center text-center p-3">
                       <div className="relative mb-3.5">
-                        <div className="w-16 h-16 rounded-full overflow-hidden border border-[#ff1b1b] p-0.5">
-                          <img 
-                            src={profile?.avatarUrl || user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150'} 
-                            className="w-full h-full rounded-full object-cover"
+                        {useRealPhotos ? (
+                          <div className="w-16 h-16 rounded-full overflow-hidden border p-0.5" style={{ borderColor: avatarColor }}>
+                            <img 
+                              src={profile?.avatarUrl || user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150'} 
+                              className="w-full h-full rounded-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <GamerAvatar 
+                            id="custom" 
+                            size="md" 
+                            animateBreathe={true} 
+                            showScanner={true} 
+                            usePhoto={false}
+                            customPrimaryColor={avatarColor}
+                            customAccentColor={avatarColorAccent}
                           />
-                        </div>
-                        <div className="absolute bottom-0 right-0 p-1 bg-[#22c55e] rounded-full border-2 border-[#111]"></div>
+                        )}
+                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-[#22c55e] rounded-full border-2 border-[#111]"></div>
                       </div>
 
                       <span className="font-sans font-bold text-sm text-white">
-                        {profile?.username || user.displayName || 'Gamer VIP'}
+                        {profile?.username || user.displayName || customAvatarName || 'Gamer VIP'}
                       </span>
-                      <span className="text-[10px] text-gray-500 font-mono">
+                      <span className="text-[10px] text-gray-400 font-mono mt-0.5 block">
+                        STATUS: IA {useRealPhotos ? 'DESATIVADA' : 'NÚCLEO ATIVADO'}
+                      </span>
+                      <span className="text-[9px] text-gray-500 font-mono">
                         {user.email}
                       </span>
 
@@ -1059,6 +1259,118 @@ export default function App() {
                       </button>
                     </div>
                   )}
+                </div>
+
+                {/* --- ESTÚDIO DE AVATARES IA DE CORES (CREATIVE LAB) --- */}
+                <div className="bg-[#111] border border-zinc-900 rounded-xl p-4 space-y-4">
+                  <div className="flex items-center gap-1.5 border-b border-zinc-800 pb-2">
+                    <Sparkles size={14} className="text-[#a855f7]" />
+                    <div>
+                      <span className="font-sans font-extrabold text-[#ffe2a5] text-xs uppercase tracking-wider block">
+                        ESTÚDIO DE AVATARES IA MULTICOR
+                      </span>
+                      <span className="text-[8px] text-gray-500 font-mono tracking-widest uppercase">
+                        SELECIONE SUA COR DE PODER NEON
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-5 gap-3 items-center">
+                    {/* Character live preview */}
+                    <div className="col-span-2 flex flex-col items-center justify-center bg-zinc-950/40 p-2.5 rounded-xl border border-zinc-900 relative">
+                      <GamerAvatar 
+                        id="custom" 
+                        size="md" 
+                        animateBreathe={true} 
+                        showScanner={true} 
+                        usePhoto={false}
+                        customPrimaryColor={avatarColor}
+                        customAccentColor={avatarColorAccent}
+                      />
+                      <span className="mt-2 text-[8px] font-mono text-center tracking-wider font-extrabold uppercase w-full truncate" style={{ color: avatarColor }}>
+                        {customAvatarName || 'SUA LENDA'}
+                      </span>
+                    </div>
+
+                    {/* Color selection Grid */}
+                    <div className="col-span-3 space-y-2 text-left">
+                      <span className="text-[8px] text-gray-400 font-mono block tracking-widest uppercase font-semibold">
+                        NICK DO AVATAR IA:
+                      </span>
+                      <input 
+                        type="text"
+                        value={customAvatarName}
+                        onChange={(e) => {
+                          setCustomAvatarName(e.target.value.substring(0, 16));
+                        }}
+                        placeholder="Ex: NOOB_CORUJA"
+                        className="w-full bg-[#050505] text-white border border-zinc-800 active:border-zinc-700 focus:border-zinc-700 rounded p-1.5 text-[11px] font-sans tracking-wide uppercase outline-none"
+                      />
+
+                      <div className="flex items-center gap-1">
+                        <span className="text-[7.5px] font-mono text-gray-500">STATUS DE ESTILO:</span>
+                        <span className="text-[7px] font-orbitron font-extrabold text-[#22c55e] bg-green-950/15 border border-green-800/30 px-2 py-0.5 rounded uppercase tracking-wider">
+                          VETORIAL IA ATIVADO
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Complete 8 Color Spectrum selector */}
+                  <div className="space-y-2">
+                    <span className="text-[8px] text-gray-400 font-mono block tracking-widest uppercase font-bold">
+                      PALETA DISPONÍVEL (TOQUE PARA ALTERAR COR):
+                    </span>
+                    
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {[
+                        { name: 'Roxo Apelão', primary: '#a855f7', accent: '#e0a7ff', colorName: 'Roxo' },
+                        { name: 'LOUD Verde', primary: '#22c55e', accent: '#bbf7d0', colorName: 'Verde' },
+                        { name: 'Fogo Coringa', primary: '#ef4444', accent: '#fca5a5', colorName: 'Vermelho' },
+                        { name: 'Fúria Ígnea', primary: '#f97316', accent: '#ffedd5', colorName: 'Laranja' },
+                        { name: 'Cyber Tecno', primary: '#06b6d4', accent: '#cffafe', colorName: 'Ciano' },
+                        { name: 'Laser Pink', primary: '#ec4899', accent: '#fbcfe8', colorName: 'Rosa' },
+                        { name: 'Coroa de Ouro', primary: '#eab308', accent: '#fef9c3', colorName: 'Dourado' },
+                        { name: 'Platina Hacker', primary: '#94a3b8', accent: '#e2e8f0', colorName: 'Prata' },
+                      ].map((palette) => {
+                        const isCurrent = avatarColor === palette.primary;
+                        return (
+                          <button
+                            key={palette.name}
+                            onClick={() => {
+                              sound.playClick();
+                              setAvatarColor(palette.primary);
+                              setAvatarColorAccent(palette.accent);
+                            }}
+                            className={`p-1.5 rounded-lg border transition-all duration-300 relative text-[8px] font-mono font-semibold flex flex-col items-center gap-1 ${
+                              isCurrent 
+                                ? 'bg-zinc-950/80 border-white/60 shadow-[0_0_8px_rgba(255,255,255,0.15)] scale-102' 
+                                : 'bg-black/40 border-zinc-900/60 hover:bg-zinc-900/40 hover:border-zinc-800'
+                            }`}
+                          >
+                            <span 
+                              className="w-3.5 h-3.5 rounded-full inline-block border shadow-inner"
+                              style={{ 
+                                backgroundColor: palette.primary, 
+                                borderColor: `${palette.primary}40`,
+                                boxShadow: isCurrent ? `0 0 8px ${palette.primary}` : 'none'
+                              }}
+                            />
+                            <span className="text-[7.5px] truncate w-full text-center text-gray-400 capitalize">
+                              {palette.colorName}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => handleSaveAvatarStyle(avatarColor, avatarColorAccent, customAvatarName)}
+                    className="w-full bg-[#ff1b1b] hover:from-[#ff1b1b] hover:to-[#ff3b3b] font-orbitron font-extrabold text-[10px] text-white py-2.5 rounded-xl uppercase tracking-widest transition-all duration-300 active:scale-95 shadow-[0_4px_12px_rgba(255,27,27,0.3)] hover:shadow-[0_4px_20px_rgba(255,27,27,0.45)]"
+                  >
+                    SINCRO AVATAR IA DE COMBATE
+                  </button>
                 </div>
 
                 {/* --- IMPORT / EXPORT LOCAL CONFIG --- */}

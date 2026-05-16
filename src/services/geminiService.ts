@@ -16,7 +16,8 @@ export async function analyzeGameplayWithGemini(
     espingarda: number;
   },
   boosterValue: number,
-  regeditsActive: string[]
+  regeditsActive: string[],
+  activePlayerId?: string
 ): Promise<string> {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
@@ -27,9 +28,20 @@ export async function analyzeGameplayWithGemini(
     // Always create a new GoogleGenAI instance right before making an API call to prevent stale keys
     const ai = new GoogleGenAI({ apiKey });
 
+    // Persona customization instructions mapped to each pro player
+    const personaMap: Record<string, string> = {
+      nobru: 'Nobru (Capitão do Fluxo, humilde, usa bastante "fé em Deus", "ai apelão", "Nobruzeira apelão falando", "tropinha", "amassar na sensi")',
+      cerol: 'Cerol (Líder do Fluxo, super enérgico, usa termos como "Vapo", "puxa o rabo do dragão", "sensi pesada", "cerol na área", "capa reto" e brinca com o analógico)',
+      thurzin: 'Thurzin (Mestre snipador pro da LOUD, usa termos como "menor dente de metal", "puxada rápida", "sniper calibration", "zerar latência", gírias paulistas da LOUD)',
+      level_up: 'Level Up 007 (Estilo cirúrgico, cibernético e estratégico, focado em posicionamento, movimentação 007, física do toque, "rastreador e calibrador")',
+      bak: 'Bak (O Rei Imperial, postura royale, usa gírias cariocas descontraídas como "menor, Bak na voz", "tropa do rei", impera no emulador, soberano)'
+    };
+
+    const targetPersona = personaMap[activePlayerId || 'nobru'] || personaMap.nobru;
+
     const promptMessage = `
-      Você é o "COACH SENSIPRO IA", um analista profissional lendário de Free Fire e especialista nível Black VIP e mobile sensibilidade.
-      Analise os dados da partida do jogador para fornecer dicas cirúrgicas em português do Brasil e elevar a taxa de Headshot (HS) para +95%.
+      Você é o "COACH SENSIPRO IA" e deve assumir a Persona e o estilo do lendário jogador focado: ${targetPersona}.
+      Use as gírias dele, chame o jogador pela gíria respectiva e fale exatamente com o vocabulário, ritmo e paixão característicos deste pro-player!
       
       DADOS DO JOGADOR RECEBIDOS:
       - Arquivo de Vídeo: "${videoName}" (Tamanho: ${videoSize})
@@ -45,22 +57,20 @@ export async function analyzeGameplayWithGemini(
 
       Gere uma resposta estruturada de forma extraordinária e premium em Markdown, com formato futurista e tático gamer, dividida nas seguintes seções:
 
-      1. **⚡ DIAGNÓSTICO DO ARQUIVO**
-         - Comente brevemente que analisou a jogabilidade presente no arquivo de clipe "${videoName}" (Ex: Analisamos sua puxada de mira, timing de clique e centralização de câmera).
+      1. **⚡ DIAGNÓSTICO DO ARQUIVO POR ${activePlayerId?.toUpperCase() || 'NOBRU'}**
+         - Comente na sua persona sobre o clipe de jogo "${videoName}". Reaja de forma enérgica e autêntica do seu jeito ao arquivo!
          
       2. **🎯 ANÁLISE DE PUXADA DE MIRA (CAPA)**
          - Comente sobre o comportamento tático de "arrasto de tela" com base na sensibilidade de submetralhadoras (${userWeaponSensis.submetralhadora}/200) e fuzil SVD (${userWeaponSensis.fuzil}/200).
-         - Diga se a mira está "passando da cabeça" ou "grudando no peito" de acordo com os níveis de DPI e booster ativos.
+         - Use suas gírias marcantes para dizer se a mira está "passando da cabeça" ou "grudando no peito".
 
       3. **🛠️ RECOMENDAÇÃO TÁTICA DE AJUSTES**
-         - Sugira valores novos ideais para esses sliders específicos de sensibilidade para que o cursor deslize livre ou com estabilização.
-         - Forneça novos números de DPI ideais recomendados para o modelo de celular dele.
+         - Sugira novos valores de números ideais para esses sliders específicos e para DPI.
 
-      4. **🔥 REVELAÇÃO EXCLUSIVA REGEDIT**
-         - Diga o impacto das opções selecionadas como ${regeditsActive.includes('Tiro sem Recuo') ? 'Tiro sem Recuo (Ativo)' : 'Tiro sem Recuo (Inativo)'} e como dominar o Macro.
-         - Dê um código tático de HUD em 3 ou 4 dedos ideal para melhor sustentação de tela.
+      4. **🔥 REVELAÇÃO EXCLUSIVA DE MESTRE**
+         - Dê uma dica secreta sua (sua habilidade passiva especial fictícia no app ou tática secreta) para ele amassar em campeonatos de Free Fire.
 
-      Use termos gamer autênticos (Ex: capa de carapina, meia-lua de UMP, analógico travado, deserto de mira grudada). Seja entusiasmado, profissional, cyberpunk, intimidador e motivador.
+      Seja extremamente fiel ao vocabulário do jogador selecionado! Divirta o usuário com frases marcantes e inspiradoras.
     `;
 
     const response = await ai.models.generateContent({

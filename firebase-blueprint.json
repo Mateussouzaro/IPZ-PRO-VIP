@@ -10,6 +10,8 @@
         "username": { "type": "string", "description": "Gaming nick name" },
         "avatarUrl": { "type": "string", "description": "Avatar design choice" },
         "deviceModel": { "type": "string", "description": "Detected or manually changed Android model" },
+        "avatarColor": { "type": "string", "description": "Custom primary color value" },
+        "avatarColorAccent": { "type": "string", "description": "Custom secondary color value" },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },

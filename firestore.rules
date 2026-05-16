@@ -40,13 +40,13 @@ service cloud.firestore {
                     && request.auth.uid == userId 
                     && isValidUser(incoming())
                     && incoming().keys().hasAll(['uid', 'email', 'username', 'avatarUrl', 'deviceModel', 'createdAt', 'updatedAt'])
-                    && incoming().keys().size() == 7;
+                    && (incoming().keys().size() == 7 || (incoming().keys().size() == 9 && incoming().keys().hasAll(['avatarColor', 'avatarColorAccent'])));
                     
       allow update: if isSignedIn() 
                     && isEmailVerified()
                     && request.auth.uid == userId 
                     && isValidUser(incoming())
-                    && incoming().diff(existing()).affectedKeys().hasOnly(['username', 'avatarUrl', 'deviceModel', 'updatedAt']);
+                    && incoming().diff(existing()).affectedKeys().hasOnly(['username', 'avatarUrl', 'deviceModel', 'updatedAt', 'avatarColor', 'avatarColorAccent']);
     }
 
     function isValidUser(data) {
@@ -55,6 +55,8 @@ service cloud.firestore {
         && data.username is string && data.username.size() >= 3 && data.username.size() <= 32
         && data.avatarUrl is string && data.avatarUrl.size() <= 256
         && data.deviceModel is string && data.deviceModel.size() <= 64
+        && (!data.keys().contains('avatarColor') || (data.avatarColor is string && data.avatarColor.size() <= 20))
+        && (!data.keys().contains('avatarColorAccent') || (data.avatarColorAccent is string && data.avatarColorAccent.size() <= 20))
         && data.createdAt == (resource == null ? request.time : existing().createdAt)
         && data.updatedAt == request.time;
     }

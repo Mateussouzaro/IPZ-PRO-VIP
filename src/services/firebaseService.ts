@@ -130,6 +130,8 @@ export interface GamerProfile {
   username: string;
   avatarUrl: string;
   deviceModel: string;
+  avatarColor?: string;
+  avatarColorAccent?: string;
   createdAt?: any;
   updatedAt?: any;
 }
@@ -340,7 +342,7 @@ export const FAMOUS_PLAYERS = [
   {
     id: 'nobru',
     name: 'Nobru Fluxo',
-    avatar: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=300&auto=format&fit=crop',
+    avatar: 'https://noticias.playhard.com.br/wp-content/uploads/2022/10/nobru.png',
     deviceModel: 'iPhone 15 Pro Max',
     themeColor: '#a855f7', // Purple
     passiveName: 'Aura Roxa',
@@ -360,7 +362,7 @@ export const FAMOUS_PLAYERS = [
   {
     id: 'cerol',
     name: 'Cerol Fluxo',
-    avatar: 'https://images.unsplash.com/photo-1620336655055-088d06e36bf0?q=80&w=300&auto=format&fit=crop',
+    avatar: 'https://s2-ge.glbimg.com/pZ2D8pInG9I03bJ3C8Zk_0lH_6s=/0x0:1080x1350/984x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_bc8228166e68443e9317b243fcba3fa1/internal_photos/bs/2022/Z/J/37jH3cTyS2xSgve8fDA/cerol-fluxo.jpg',
     deviceModel: 'iPad Pro M4',
     themeColor: '#f97316', // Orange
     passiveName: 'Fúria Ígnea',
@@ -380,7 +382,7 @@ export const FAMOUS_PLAYERS = [
   {
     id: 'thurzin',
     name: 'Thurzin LOUD',
-    avatar: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=300&auto=format&fit=crop',
+    avatar: 'https://s2-ge.glbimg.com/N7bQp8XI9b0J4bc8Zk_0lH_6s=/0x0:1080x1080/984x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_bc8228166e68443e9317b243fcba3fa1/internal_photos/bs/2021/Y/r/thUrzIn-loud.jpg',
     deviceModel: 'POCO F5 Pro',
     themeColor: '#22c55e', // Green LOUD
     passiveName: 'Puxada Neon',
@@ -400,7 +402,7 @@ export const FAMOUS_PLAYERS = [
   {
     id: 'level_up',
     name: 'Level UP 007',
-    avatar: 'https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=300&auto=format&fit=crop',
+    avatar: 'https://s2-ge.glbimg.com/s4-WqW0K4XbSg_0_H_ks=/0x0:1080x1350/984x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_bc8228166e68443e9317b243fcba3fa1/internal_photos/bs/2021/X/p/level-up-007.jpg',
     deviceModel: 'Samsung Galaxy S24 Ultra',
     themeColor: '#06b6d4', // Cyan
     passiveName: 'Rastreador Cyber',
@@ -420,7 +422,7 @@ export const FAMOUS_PLAYERS = [
   {
     id: 'bak',
     name: 'Bak King',
-    avatar: 'https://images.unsplash.com/photo-1560942485-b2a11cc13456?q=80&w=300&auto=format&fit=crop',
+    avatar: 'https://s2-ge.glbimg.com/p-k8Xv0oW_8c8Ew7e7V8C6S_ks=/984x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_bc8228166e68443e9317b243fcba3fa1/internal_photos/bs/2020/u/p/bak-free-fire.jpg',
     deviceModel: 'ROG Phone 8 Pro',
     themeColor: '#eab308', // Gold
     passiveName: 'Coroa Imperial',
